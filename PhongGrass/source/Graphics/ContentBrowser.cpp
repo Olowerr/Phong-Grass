@@ -63,6 +63,8 @@ namespace Okay
 		}
 		
 		materials.emplace_back(matDesc);
+
+		meshInfo.materialId = (uint32_t)materials.size() - 1u;
 		meshes.emplace_back(meshInfo);
 		
 		return true;

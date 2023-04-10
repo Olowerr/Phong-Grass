@@ -35,8 +35,8 @@ if (!(condition))\
 #define UNORM_TO_UCHAR(value)	unsigned char((value) * UCHAR_MAX)
 #define UCHAR_TO_UNORM(value)	float((value) / (float)UCHAR_MAX)
 
-#define ENGINE_RESOURCES_PATH "../OkayEngine/engine_resources/"
-#define SHADER_PATH ENGINE_RESOURCES_PATH "shaders/"
+#define RESOURCES_PATH "../resources/"
+#define SHADER_PATH RESOURCES_PATH "shaders/"
 
 namespace Okay
 {

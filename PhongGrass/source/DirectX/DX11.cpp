@@ -126,16 +126,14 @@ HRESULT DX11::createConstantBuffer(ID3D11Buffer** ppBuffer, const void* pData, U
 	return get().pDevice->CreateBuffer(&desc, pData ? &inData : nullptr, ppBuffer);
 }
 
-void DX11::updateBuffer(ID3D11Resource* pBuffer, const void* pData, UINT byteSize, ID3D11DeviceContext* pDefContext)
+void DX11::updateBuffer(ID3D11Resource* pBuffer, const void* pData, UINT byteSize)
 {
-	ID3D11DeviceContext* pContext = pDefContext ? pDefContext : get().pDeviceContext;
-
 	D3D11_MAPPED_SUBRESOURCE sub;
-	if (FAILED(pContext->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &sub)))
+	if (FAILED(getDeviceContext()->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &sub)))
 		return;
 
 	memcpy(sub.pData, pData, byteSize);
-	pContext->Unmap(pBuffer, 0);
+	getDeviceContext()->Unmap(pBuffer, 0);
 }
 
 void DX11::updateTexture(ID3D11Texture2D* pBuffer, const void* pData, uint32_t elementByteSize, uint32_t width, uint32_t height)
@@ -249,6 +247,12 @@ bool DX11::createShader(std::string_view path, ShaderType** ppShader, std::strin
 		if constexpr (std::is_same<ShaderType, ID3D11VertexShader>())
 			return SUCCEEDED(DX11::get().getDevice()->CreateVertexShader(pOutShaderData->c_str(), pOutShaderData->length(), nullptr, ppShader));
 
+		else if constexpr (std::is_same<ShaderType, ID3D11HullShader>())
+			return SUCCEEDED(DX11::get().getDevice()->CreateHullShader(pOutShaderData->c_str(), pOutShaderData->length(), nullptr, ppShader));
+
+		else if constexpr (std::is_same<ShaderType, ID3D11DomainShader>())
+			return SUCCEEDED(DX11::get().getDevice()->CreateDomainShader(pOutShaderData->c_str(), pOutShaderData->length(), nullptr, ppShader));
+
 		else if constexpr (std::is_same<ShaderType, ID3D11PixelShader>())
 			return SUCCEEDED(DX11::get().getDevice()->CreatePixelShader(pOutShaderData->c_str(), pOutShaderData->length(), nullptr, ppShader));
 	}
@@ -272,6 +276,8 @@ bool DX11::createShader(std::string_view path, ShaderType** ppShader, std::strin
 
 		const char* shaderTypeTarget = nullptr;
 		if		constexpr (std::is_same<ShaderType, ID3D11VertexShader>())	shaderTypeTarget = "vs_5_0";
+		else if constexpr (std::is_same<ShaderType, ID3D11HullShader>())	shaderTypeTarget = "hs_5_0";
+		else if constexpr (std::is_same<ShaderType, ID3D11DomainShader>())	shaderTypeTarget = "ds_5_0";
 		else if constexpr (std::is_same<ShaderType, ID3D11PixelShader>())	shaderTypeTarget = "ps_5_0";
 
 		IncludeReader includer;
@@ -287,11 +293,18 @@ bool DX11::createShader(std::string_view path, ShaderType** ppShader, std::strin
 		if (pOutShaderData)
 			pOutShaderData->assign((char*)shaderData->GetBufferPointer(), shaderData->GetBufferSize());
 
+
 		if constexpr (std::is_same<ShaderType, ID3D11VertexShader>())
-			return SUCCEEDED(DX11::get().getDevice()->CreateVertexShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize(), nullptr, (ID3D11VertexShader**)ppShader));
+			return SUCCEEDED(DX11::get().getDevice()->CreateVertexShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize(), nullptr, ppShader));
+
+		else if constexpr (std::is_same<ShaderType, ID3D11HullShader>())
+			return SUCCEEDED(DX11::get().getDevice()->CreateHullShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize(), nullptr, ppShader));
+
+		else if constexpr (std::is_same<ShaderType, ID3D11DomainShader>())
+			return SUCCEEDED(DX11::get().getDevice()->CreateDomainShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize(), nullptr, ppShader));
 
 		else if constexpr (std::is_same<ShaderType, ID3D11PixelShader>())
-			return SUCCEEDED(DX11::get().getDevice()->CreatePixelShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize(), nullptr, (ID3D11PixelShader**)ppShader));
+			return SUCCEEDED(DX11::get().getDevice()->CreatePixelShader(shaderData->GetBufferPointer(), shaderData->GetBufferSize(), nullptr, ppShader));
 	}
 
 	return false;

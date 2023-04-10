@@ -5,7 +5,7 @@ namespace Okay
 {
 	RenderTexture::RenderTexture()
 		:buffer(nullptr), rtv(nullptr), srv(nullptr), uav(nullptr),
-		depthBuffer(nullptr), dsv(nullptr), flags(0u), format(Format::INVALID)
+		depthBuffer(nullptr), dsv(nullptr), flags(0u), format(Format::INVALID), dims(0u, 0u)
 	{
 
 	}
@@ -39,6 +39,7 @@ namespace Okay
 		DX11_RELEASE(depthBuffer);
 		DX11_RELEASE(dsv);
 
+		dims = DirectX::XMUINT2();
 		flags = 0u;
 		format = Format::INVALID;
 	}
@@ -69,6 +70,9 @@ namespace Okay
 			format = Format::F_32X4;
 			break;
 		}
+
+		dims.x = desc.Width;
+		dims.y = desc.Height;
 
 		readFlgs(flags);
 	}
@@ -103,6 +107,9 @@ namespace Okay
 		pDevice->CreateTexture2D(&desc, nullptr, &buffer);
 		OKAY_ASSERT(buffer, "Failed creating RenderTexture");
 
+		dims.x = width;
+		dims.y = height;
+
 		readFlgs(flags);
 	}
 
@@ -126,13 +133,6 @@ namespace Okay
 
 		for (auto& callback : callbacks)
 			callback(width, height);
-	}
-
-	DirectX::XMUINT2 RenderTexture::getDimensions() const
-	{
-		D3D11_TEXTURE2D_DESC desc;
-		buffer->GetDesc(&desc);
-		return DirectX::XMUINT2(desc.Width, desc.Height);
 	}
 
 	void RenderTexture::readFlgs(uint32_t flags)

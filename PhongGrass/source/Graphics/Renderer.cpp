@@ -15,78 +15,110 @@
 
 namespace Okay
 {
-	struct PipelineResources
-	{
-		PipelineResources() = default;
-		~PipelineResources();
-
-		// Buffers --- 
-		ID3D11Buffer* pCameraBuffer = nullptr;
-		ID3D11Buffer* pWorldBuffer = nullptr;
-		ID3D11Buffer* pMaterialBuffer = nullptr;
-		ID3D11Buffer* pShaderDataBuffer = nullptr;
-
-		ID3D11Buffer* pSkyDataBuffer = nullptr;
-
-		ID3D11Buffer* pLightInfoBuffer = nullptr;
-		ID3D11Buffer* pPointLightBuffer = nullptr;
-		ID3D11Buffer* pDirLightBuffer = nullptr;
-		ID3D11ShaderResourceView* pPointLightSRV = nullptr;
-		ID3D11ShaderResourceView* pDirLightSRV = nullptr;
-		uint32_t maxPointLights = 0u;
-		uint32_t maxDirLights = 0u;
-
-		ID3D11SamplerState* simp = nullptr;
-
-		uint32_t defaultShaderId = INVALID_UINT;
-		uint32_t skyboxMeshId = INVALID_UINT;
-
-		// Input layouts
-		ID3D11InputLayout* pPosIL = nullptr;
-		ID3D11InputLayout* pPosUvNormIL = nullptr;
-		ID3D11InputLayout* pPosUvNormJidxWeightIL = nullptr;
-
-		// Vertex shaders
-		ID3D11VertexShader* pMeshVS = nullptr;
-		ID3D11VertexShader* pSkeletalVS = nullptr;
-		ID3D11VertexShader* pSkyBoxVS = nullptr;
-
-		// Rasterizer states
-		ID3D11RasterizerState* pWireframeRS = nullptr;
-		ID3D11RasterizerState* pNoCullRS = nullptr;
-
-		// Pixel shaders
-		ID3D11PixelShader* pSkyBoxPS = nullptr;
-
-		// Depth Stencils
-		ID3D11DepthStencilState* pLessEqualDSS = nullptr;
-	};
-
-	static PipelineResources pipeline;
-
 	void Renderer::init()
 	{
-		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		pDevContext->VSSetConstantBuffers(0, 1, &pipeline.pCameraBuffer);
-		pDevContext->VSSetConstantBuffers(1, 1, &pipeline.pWorldBuffer);
-		pDevContext->VSSetConstantBuffers(2, 1, &pipeline.pMaterialBuffer);
-		pDevContext->VSSetConstantBuffers(3, 1, &pipeline.pShaderDataBuffer);
-		pDevContext->VSSetConstantBuffers(4, 1, &pipeline.pSkyDataBuffer);
-		pDevContext->VSSetConstantBuffers(5, 1, &pipeline.pLightInfoBuffer);
+		bool result = false;
+		HRESULT hr = E_FAIL;
+		DX11& dx11 = DX11::get();
+		ID3D11Device* pDevice = dx11.getDevice();
 
-		pDevContext->PSSetConstantBuffers(0, 1, &pipeline.pCameraBuffer);
-		pDevContext->PSSetConstantBuffers(1, 1, &pipeline.pWorldBuffer);
-		pDevContext->PSSetConstantBuffers(2, 1, &pipeline.pMaterialBuffer);
-		pDevContext->PSSetConstantBuffers(3, 1, &pipeline.pShaderDataBuffer);
-		pDevContext->PSSetConstantBuffers(4, 1, &pipeline.pSkyDataBuffer);
-		pDevContext->PSSetConstantBuffers(5, 1, &pipeline.pLightInfoBuffer);
-		pDevContext->PSSetShaderResources(3, 1, &pipeline.pPointLightSRV);
-		pDevContext->PSSetShaderResources(4, 1, &pipeline.pDirLightSRV);
+		// Buffers
+		{
+			hr = DX11::createConstantBuffer(&pRenderDataBuffer, nullptr, sizeof(GPURenderData), false);
+			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating pRenderDataBuffer");
 
-		pDevContext->VSSetSamplers(0u, 1u, &pipeline.simp);
-		pDevContext->PSSetSamplers(0u, 1u, &pipeline.simp);
+			hr = DX11::createConstantBuffer(&pObjectDataBuffer, nullptr, sizeof(GPUObjectData), false);
+			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating pObjectDataBuffer");
+		}
+
+		// Rasterizer states
+		{
+			D3D11_RASTERIZER_DESC rsDesc{};
+			rsDesc.FillMode = D3D11_FILL_SOLID;
+			rsDesc.CullMode = D3D11_CULL_NONE;
+			rsDesc.FrontCounterClockwise = FALSE;
+			rsDesc.DepthBias = 0;
+			rsDesc.SlopeScaledDepthBias = 0.0f;
+			rsDesc.DepthBiasClamp = 0.0f;
+			rsDesc.DepthClipEnable = TRUE;
+			rsDesc.ScissorEnable = FALSE;
+			rsDesc.MultisampleEnable = FALSE;
+			rsDesc.AntialiasedLineEnable = FALSE;
+			hr = pDevice->CreateRasterizerState(&rsDesc, &pNoCullRS);
+			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating noCullRS");
+		}
+
+
+		// Basic linear sampler
+		{
+			D3D11_SAMPLER_DESC simpDesc{};
+			simpDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			simpDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+			simpDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+			simpDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+			simpDesc.MinLOD = -FLT_MAX;
+			simpDesc.MaxLOD = FLT_MAX;
+			simpDesc.MipLODBias = 0.f;
+			simpDesc.MaxAnisotropy = 1u;
+			simpDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+			hr = pDevice->CreateSamplerState(&simpDesc, &simp);
+			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating sampler");
+		}
+
+
+		// Input Layouts & Shaders
+		{
+			D3D11_INPUT_ELEMENT_DESC inputLayoutDesc[3] = {
+				{"POSITION",	0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+				{"UV",			0, DXGI_FORMAT_R32G32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+				{"NORMAL",		0, DXGI_FORMAT_R32G32B32_FLOAT, 2, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
+			};
+
+			std::string shaderData;
+
+			result = DX11::createShader(SHADER_PATH "MeshVS.hlsl", &pMeshVS, &shaderData);
+			OKAY_ASSERT(result, "Failed creating vertex shader");
+
+			hr = pDevice->CreateInputLayout(inputLayoutDesc, 3u, shaderData.c_str(), shaderData.length(), &pPosUvNormIL);
+			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating input layout");
+
+#if GRASS
+			result = DX11::createShader(SHADER_PATH "GrassVS.hlsl", &pGrassVS, &shaderData);
+			OKAY_ASSERT(result, "Failed creating grass vertex shader");
+
+			hr = pDevice->CreateInputLayout(inputLayoutDesc, 1u, shaderData.c_str(), shaderData.length(), &pPosIL);
+			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating pos only input layout");
+
+			result = DX11::createShader(SHADER_PATH "GrassHS.hlsl", &pGrassHS);
+			OKAY_ASSERT(result, "Failed creating grass hull shhader");
+
+			result = DX11::createShader(SHADER_PATH "GrassDS.hlsl", &pGrassDS);
+			OKAY_ASSERT(result, "Failed creating grass domain shhader");
+			
+			result = DX11::createShader(SHADER_PATH "GrassPS.hlsl", &pGrassPS);
+			OKAY_ASSERT(result, "Failed creating grass pixel shader");
+#endif
+
+			result = DX11::createShader(SHADER_PATH "DefaultPS.hlsl", &pDefaultPS);
+			OKAY_ASSERT(result, "Failed creating Default pixel shader");
+
+		}
+
+		pDevContext->VSSetConstantBuffers(0, 1, &pRenderDataBuffer);
+		pDevContext->VSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+		pDevContext->VSSetSamplers(0u, 1u, &simp);
+		
+		//pDevContext->HSSetConstantBuffers(0, 1, &pRenderDataBuffer);
+		//pDevContext->HSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+
+		//pDevContext->DSSetConstantBuffers(0, 1, &pRenderDataBuffer);
+		//pDevContext->DSSetConstantBuffers(1, 1, &pObjectDataBuffer);
 
 		pDevContext->RSSetViewports(1u, &viewport);
+
+		//pDevContext->PSSetConstantBuffers(0, 1, &pRenderDataBuffer);
+		//pDevContext->PSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+		pDevContext->PSSetSamplers(0u, 1u, &simp);
 
 		pDevContext->OMSetRenderTargets(1u, pRenderTarget->getRTV(), *pRenderTarget->getDSV());
 	}
@@ -117,12 +149,12 @@ namespace Okay
 	{
 		shutdown();
 
+		pDevContext = DX11::get().getDeviceContext();
+
 		pRenderTarget = target;
 		OKAY_ASSERT(pRenderTarget, "RenderTarget was nullptr");
 		pScene = scene;
 		OKAY_ASSERT(pScene, "Scene was nullptr");
-
-		pDevContext = DX11::get().getDeviceContext();
 
 		viewport.TopLeftX = 0.f;
 		viewport.TopLeftY = 0.f;
@@ -130,6 +162,8 @@ namespace Okay
 		viewport.MaxDepth = 1.f;
 		const DirectX::XMUINT2 dims = pRenderTarget->getDimensions();
 		onTargetResize(dims.x, dims.y);
+
+		init();
 	}
 
 	void Renderer::create(uint32_t width, uint32_t height, Ref<Scene> scene)
@@ -140,8 +174,24 @@ namespace Okay
 
 	void Renderer::shutdown()
 	{
+		customCamera = Entity();
 		pScene = nullptr;
 		pRenderTarget = nullptr;
+		pDevContext = nullptr;
+
+		DX11_RELEASE(pRenderDataBuffer);
+		DX11_RELEASE(pObjectDataBuffer);
+		DX11_RELEASE(simp);
+		DX11_RELEASE(pPosIL);
+		DX11_RELEASE(pPosUvNormIL);
+		DX11_RELEASE(pMeshVS);
+		DX11_RELEASE(pGrassVS);
+		DX11_RELEASE(pGrassHS);
+		DX11_RELEASE(pGrassDS);
+		DX11_RELEASE(pNoCullRS);
+		DX11_RELEASE(pDefaultPS);
+		DX11_RELEASE(pGrassPS);
+		viewport = D3D11_VIEWPORT();
 	}
 
 	void Renderer::setRenderTexture(Ref<RenderTexture> pRenderTexture)
@@ -170,7 +220,68 @@ namespace Okay
 
 	void Renderer::render()
 	{
+		Entity camEntity = pScene->getMainCamera();
+		OKAY_ASSERT(camEntity, "Invalid camera entity");
+
+		OKAY_ASSERT(camEntity.hasComponent<Camera>(), "Camera entity doesn't have a camera component");
+		const Camera& camera = camEntity.getComponent<Camera>();
+		const Transform& camTransform = camEntity.getComponent<Transform>();
+
+		using namespace DirectX;
+
+		XMFLOAT3 upDir = XMFLOAT3(0.f, 1.f, 0.f);
+		XMFLOAT3 origo = XMFLOAT3(0.f, 0.f, 0.f);
+		XMMATRIX viewProj = XMMatrixLookAtLH(XMLoadFloat3(&camTransform.position), XMLoadFloat3(&origo), XMLoadFloat3(&upDir)) *
+		camera.calculateProjMatrix(viewport.Width, viewport.Height);
+
+		DirectX::XMStoreFloat4x4(&renderData.viewProjMatrix, DirectX::XMMatrixTranspose(viewProj));
+		renderData.camPos = camTransform.position;
+		renderData.camDir = DirectX::XMFLOAT3(0.f, 0.f, 0.f); // TODO: FIX THIS 
 		
+		DX11::updateBuffer(pRenderDataBuffer, &renderData, sizeof(GPURenderData));
+
+		// Standard mesh pipeline
+		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		pDevContext->IASetInputLayout(pPosUvNormIL);
+		pDevContext->VSSetShader(pMeshVS, nullptr, 0u);
+		pDevContext->HSSetShader(nullptr, nullptr, 0u);
+		pDevContext->DSSetShader(nullptr, nullptr, 0u);
+		pDevContext->RSSetState(nullptr);
+		pDevContext->PSSetShader(pDefaultPS, nullptr, 0u);
+		pRenderTarget->clear();
+
+
+		ContentBrowser& content = ContentBrowser::get();
+		entt::registry& reg = pScene->getRegistry();
+		auto objGroup = reg.group<Transform, MeshComponent>();
+		DirectX::XMMATRIX worldMatrix{};
+
+		for (entt::entity entity : objGroup)
+		{
+			auto [transform, meshComp] = objGroup.get<Transform, MeshComponent>(entity);
+
+			const Mesh& mesh = content.getAsset<Mesh>(meshComp.meshIdx);
+			const Material& material = content.getAsset<Material>(mesh.getMaterialID());
+			const Material::GPUData& matGPUData = material.getGPUData();
+			const Texture& diffuseTexture = content.getAsset<Texture>(material.getBaseColour());
+
+
+			transform.calculateMatrix();
+			worldMatrix = transform.matrix;
+			DirectX::XMStoreFloat4x4(&objectData.worldMatrix, worldMatrix);
+			objectData.uvOffset = matGPUData.uvOffset;
+			objectData.uvTiling = matGPUData.uvTiling;
+			DX11::updateBuffer(pObjectDataBuffer, &objectData, sizeof(GPUObjectData));
+
+
+			pDevContext->IASetVertexBuffers(0u, Mesh::NumBuffers, mesh.getBuffers(), Mesh::Stride, Mesh::Offset);
+			pDevContext->IASetIndexBuffer(mesh.getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0u);
+
+			pDevContext->PSSetShaderResources(0u, 1u, diffuseTexture.getSRV());
+
+			pDevContext->DrawIndexed(mesh.getNumIndices(), 0u, 0);
+		}
+
 	}
 
 	void Renderer::onTargetResize(uint32_t width, uint32_t height)
@@ -183,38 +294,5 @@ namespace Okay
 	void Renderer::updateCameraBuffer(const Entity& cameraEntity)
 	{
 		
-	}
-	
-	PipelineResources::~PipelineResources()
-	{
-		DX11_RELEASE(pCameraBuffer);
-		DX11_RELEASE(pWorldBuffer);
-		DX11_RELEASE(pMaterialBuffer);
-		DX11_RELEASE(pShaderDataBuffer);
-
-		DX11_RELEASE(pSkyDataBuffer);
-
-		DX11_RELEASE(pLightInfoBuffer);
-		DX11_RELEASE(pPointLightBuffer);
-		DX11_RELEASE(pDirLightBuffer);
-		DX11_RELEASE(pPointLightSRV);
-		DX11_RELEASE(pDirLightSRV);
-
-		DX11_RELEASE(simp);
-
-		DX11_RELEASE(pPosIL);
-		DX11_RELEASE(pPosUvNormIL);
-		DX11_RELEASE(pPosUvNormJidxWeightIL);
-
-		DX11_RELEASE(pMeshVS);
-		DX11_RELEASE(pSkeletalVS);
-		DX11_RELEASE(pSkyBoxVS);
-
-		DX11_RELEASE(pWireframeRS);
-		DX11_RELEASE(pNoCullRS);
-
-		DX11_RELEASE(pSkyBoxPS);
-
-		DX11_RELEASE(pLessEqualDSS);
 	}
 }

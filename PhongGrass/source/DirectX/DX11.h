@@ -31,7 +31,7 @@ public:
 	static HRESULT createIndexBuffer(ID3D11Buffer** ppBuffer, const void* pData, UINT byteSize, bool immutable = true);
 	static HRESULT createConstantBuffer(ID3D11Buffer** ppBuffer, const void* pData, UINT byteSize, bool immutable = true);
 
-	static void updateBuffer(ID3D11Resource* pBuffer, const void* pData, UINT byteSize, ID3D11DeviceContext* pDefContext = nullptr);
+	static void updateBuffer(ID3D11Resource* pBuffer, const void* pData, UINT byteSize);
 	static void updateTexture(ID3D11Texture2D* pBuffer, const void* pData, uint32_t elementByteSize, uint32_t width = 0u, uint32_t height = 0u);
 
 	static HRESULT createStructuredBuffer(ID3D11Buffer** ppBuffer, const void* pData, UINT eleByteSize, UINT numElements, bool immutable = true);

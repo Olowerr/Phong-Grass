@@ -21,7 +21,7 @@ namespace Okay
 		inline float getAspectRatio() const;
 
 		inline ID3D11Texture2D* getTexture() const;
-		inline ID3D11ShaderResourceView* getSRV() const;
+		inline ID3D11ShaderResourceView* const* getSRV() const;
 
 	private:
 		std::string name;
@@ -67,8 +67,8 @@ namespace Okay
 		return texture; 
 	}
 
-	inline ID3D11ShaderResourceView* Texture::getSRV() const 
+	inline ID3D11ShaderResourceView* const* Texture::getSRV() const
 	{ 
-		return srv; 
+		return &srv; 
 	}
 }

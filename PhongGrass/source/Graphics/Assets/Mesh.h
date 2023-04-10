@@ -15,15 +15,13 @@ namespace Okay
 		struct MeshInfo
 		{
 			std::string name;
+			uint32_t materialId;
 
 			std::vector<uint32_t> indices;
 
 			std::vector<DirectX::XMFLOAT3> positions;
 			std::vector<DirectX::XMFLOAT2> uvs;
 			std::vector<DirectX::XMFLOAT3> normals;
-			
-			//std::vector<glm::vec3> tangents;
-			//std::vector<glm::vec3> biTangents;
 		};
 
 		static const uint32_t NumBuffers = 3;
@@ -34,8 +32,6 @@ namespace Okay
 		Mesh(const MeshInfo& data);
 		Mesh(Mesh&& other) noexcept;
 		~Mesh();
-		//Mesh& operator=(const Mesh&) = delete;
-		//Mesh(const Mesh&) = delete;
 
 		void create(const MeshInfo& data);
 
@@ -46,6 +42,8 @@ namespace Okay
 		
 		inline ID3D11Buffer* getIndexBuffer() const;
 		inline uint32_t getNumIndices() const;
+
+		inline uint32_t getMaterialID() const;
 		
 		inline const std::string& getName() const;
 		inline void setName(std::string_view name);
@@ -57,6 +55,8 @@ namespace Okay
 		ID3D11Buffer* indexBuffer;
 
 		uint32_t numIndices;
+
+		uint32_t materialId;
 	};
 
 
@@ -64,6 +64,8 @@ namespace Okay
 	ID3D11Buffer** Mesh::getBuffers() { return vertexBuffers; }
 	ID3D11Buffer* Mesh::getIndexBuffer() const { return indexBuffer; }
 	uint32_t Mesh::getNumIndices() const { return numIndices; }
+
+	uint32_t Mesh::getMaterialID() const { return materialId; }
 
 	const std::string& Mesh::getName() const { return name; }
 	void Mesh::setName(std::string_view name) { this->name = name; }

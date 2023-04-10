@@ -52,7 +52,7 @@ namespace Okay
 		inline void removeOnResizeCallback(Func&& func, void* pOwner);
 
 		void resize(uint32_t width, uint32_t height);
-		DirectX::XMUINT2 getDimensions() const;
+		inline DirectX::XMUINT2 getDimensions() const;
 
 		inline uint32_t getFlags() const;
 		inline bool valid() const;
@@ -67,6 +67,7 @@ namespace Okay
 	private:
 		std::vector<std::function<void(uint32_t, uint32_t)>> callbacks;
 		
+		DirectX::XMUINT2 dims;
 		uint32_t flags;
 		Format format;
 
@@ -110,4 +111,5 @@ namespace Okay
 	inline ID3D11Texture2D* RenderTexture::getDepthBuffer()				{ return depthBuffer; }
 	inline ID3D11DepthStencilView* const* RenderTexture::getDSV() const { return &dsv; }
 
+	inline DirectX::XMUINT2 RenderTexture::getDimensions() const		{ return dims; }
 } // Okay

@@ -266,6 +266,20 @@ SET ERRORLEVEL=0</Command>
     <ClInclude Include="source\Graphics\SkyBox.h" />
     <ClInclude Include="source\Okay\Okay.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\ShaderInclude.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\MeshVS.hlsl">
+      <FileType>Document</FileType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\resources\shaders\DefaultPS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

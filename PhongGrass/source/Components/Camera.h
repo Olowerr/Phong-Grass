@@ -9,7 +9,7 @@ namespace Okay
 		// TODO: Add support for target point camera
 		// without forcing the calculation on the user
 
-		float fov = 90.f;
+		float fov = DirectX::XM_PIDIV2;
 		float nearZ = 0.1f;
 		float farZ = 1000.f;
 
