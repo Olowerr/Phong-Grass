@@ -39,7 +39,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 	Entity camera = app.scene->createEntity();
 	camera.addComponent<Camera>();
-	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(5.f, 5.f, -5.f);
+	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(2.f, 2.f, -5.f);
 
 	app.scene->setMainCamera(camera);
 }

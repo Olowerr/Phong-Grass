@@ -229,14 +229,12 @@ namespace Okay
 
 		using namespace DirectX;
 
-		XMFLOAT3 upDir = XMFLOAT3(0.f, 1.f, 0.f);
-		XMFLOAT3 origo = XMFLOAT3(0.f, 0.f, 0.f);
-		XMMATRIX viewProj = XMMatrixLookAtLH(XMLoadFloat3(&camTransform.position), XMLoadFloat3(&origo), XMLoadFloat3(&upDir)) *
+		XMMATRIX viewProj = XMMatrixLookToLH(XMLoadFloat3(&camTransform.position), camTransform.forwardXM(), camTransform.upXM()) *
 		camera.calculateProjMatrix(viewport.Width, viewport.Height);
 
 		DirectX::XMStoreFloat4x4(&renderData.viewProjMatrix, DirectX::XMMatrixTranspose(viewProj));
 		renderData.camPos = camTransform.position;
-		renderData.camDir = DirectX::XMFLOAT3(0.f, 0.f, 0.f); // TODO: FIX THIS 
+		renderData.camDir = camTransform.forward();
 		
 		DX11::updateBuffer(pRenderDataBuffer, &renderData, sizeof(GPURenderData));
 
