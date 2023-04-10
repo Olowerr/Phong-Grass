@@ -148,18 +148,18 @@ constexpr uint32_t NUM = 100u;
 	}
 
 	Renderer::Renderer()
-		:pScene(nullptr), pRenderTarget(nullptr), pDevContext(nullptr), viewport()
+		:pScene(nullptr), pRenderTarget(nullptr), pDevContext(nullptr), viewport(), renderData(), objectData()
 	{
 	}
 
 	Renderer::Renderer(Ref<RenderTexture> target, Ref<Scene> scene)
-		:pScene(nullptr), pRenderTarget(nullptr), pDevContext(nullptr), viewport()
+		:pScene(nullptr), pRenderTarget(nullptr), pDevContext(nullptr), viewport(), renderData(), objectData()
 	{
 		create(target, scene);
 	}
 
 	Renderer::Renderer(uint32_t width, uint32_t height, Ref<Scene> scene)
-		:pScene(nullptr), pRenderTarget(nullptr), pDevContext(nullptr), viewport()
+		:pScene(nullptr), pRenderTarget(nullptr), pDevContext(nullptr), viewport(), renderData(), objectData()
 	{
 		create(width, height, scene);
 	}
