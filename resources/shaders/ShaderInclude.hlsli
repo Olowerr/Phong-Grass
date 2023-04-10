@@ -40,6 +40,7 @@ float2 calculateFinalUV(float2 inputUV)
 
 // Resources
 Texture2D diffuseTexture : register(t0);
+StructuredBuffer<float4x4> instanceTransforms : register(t1);
 
 // Samplers
 SamplerState simp : register(s0);

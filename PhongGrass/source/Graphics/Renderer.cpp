@@ -82,22 +82,19 @@ namespace Okay
 			hr = pDevice->CreateInputLayout(inputLayoutDesc, 3u, shaderData.c_str(), shaderData.length(), &pPosUvNormIL);
 			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating input layout");
 
-#if GRASS
-			result = DX11::createShader(SHADER_PATH "GrassVS.hlsl", &pGrassVS, &shaderData);
-			OKAY_ASSERT(result, "Failed creating grass vertex shader");
+			result = DX11::createShader(SHADER_PATH "InstancedVS.hlsl", &pInstancedVS);
+			OKAY_ASSERT(result, "Failed creating instanced vertex shader");
 
-			hr = pDevice->CreateInputLayout(inputLayoutDesc, 1u, shaderData.c_str(), shaderData.length(), &pPosIL);
-			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating pos only input layout");
-
+#if TESSELLATION
 			result = DX11::createShader(SHADER_PATH "GrassHS.hlsl", &pGrassHS);
 			OKAY_ASSERT(result, "Failed creating grass hull shhader");
 
 			result = DX11::createShader(SHADER_PATH "GrassDS.hlsl", &pGrassDS);
 			OKAY_ASSERT(result, "Failed creating grass domain shhader");
-			
+#endif
+
 			result = DX11::createShader(SHADER_PATH "GrassPS.hlsl", &pGrassPS);
 			OKAY_ASSERT(result, "Failed creating grass pixel shader");
-#endif
 
 			result = DX11::createShader(SHADER_PATH "DefaultPS.hlsl", &pDefaultPS);
 			OKAY_ASSERT(result, "Failed creating Default pixel shader");
@@ -108,19 +105,46 @@ namespace Okay
 		pDevContext->VSSetConstantBuffers(1, 1, &pObjectDataBuffer);
 		pDevContext->VSSetSamplers(0u, 1u, &simp);
 		
-		//pDevContext->HSSetConstantBuffers(0, 1, &pRenderDataBuffer);
-		//pDevContext->HSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+		pDevContext->HSSetConstantBuffers(0, 1, &pRenderDataBuffer);
+		pDevContext->HSSetConstantBuffers(1, 1, &pObjectDataBuffer);
 
-		//pDevContext->DSSetConstantBuffers(0, 1, &pRenderDataBuffer);
-		//pDevContext->DSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+		pDevContext->DSSetConstantBuffers(0, 1, &pRenderDataBuffer);
+		pDevContext->DSSetConstantBuffers(1, 1, &pObjectDataBuffer);
 
 		pDevContext->RSSetViewports(1u, &viewport);
 
-		//pDevContext->PSSetConstantBuffers(0, 1, &pRenderDataBuffer);
-		//pDevContext->PSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+		pDevContext->PSSetConstantBuffers(0, 1, &pRenderDataBuffer);
+		pDevContext->PSSetConstantBuffers(1, 1, &pObjectDataBuffer);
 		pDevContext->PSSetSamplers(0u, 1u, &simp);
 
 		pDevContext->OMSetRenderTargets(1u, pRenderTarget->getRTV(), *pRenderTarget->getDSV());
+	}
+
+constexpr uint32_t NUM = 100u;
+
+	void Renderer::initGrass()
+	{
+		DX11_RELEASE(pGrassTransformBuffer);
+		DX11_RELEASE(pGrassTransformSRV);
+
+		using namespace DirectX;
+		
+		std::vector<XMFLOAT4X4> matrices(NUM * NUM);
+		for (size_t i = 0; i < NUM; i++)
+		{
+			for (size_t j = 0; j < NUM; j++)
+			{
+				XMStoreFloat4x4(&matrices[i * NUM + j], XMMatrixTranspose(XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixTranslation((float)i - NUM / 2.f, 0.f, (float)j - NUM / 2.f)));
+			}
+		}
+
+		HRESULT hr;
+		hr = DX11::createStructuredBuffer(&pGrassTransformBuffer, matrices.data(), 64u, NUM * NUM);
+		OKAY_ASSERT(SUCCEEDED(hr), "Failed creating grass buffer");
+		hr = DX11::createStructuredSRV(&pGrassTransformSRV, pGrassTransformBuffer, NUM * NUM);
+		OKAY_ASSERT(SUCCEEDED(hr), "Failed creating grass SRV");
+
+		pDevContext->VSSetShaderResources(1, 1, &pGrassTransformSRV);
 	}
 
 	Renderer::Renderer()
@@ -182,15 +206,16 @@ namespace Okay
 		DX11_RELEASE(pRenderDataBuffer);
 		DX11_RELEASE(pObjectDataBuffer);
 		DX11_RELEASE(simp);
-		DX11_RELEASE(pPosIL);
 		DX11_RELEASE(pPosUvNormIL);
 		DX11_RELEASE(pMeshVS);
-		DX11_RELEASE(pGrassVS);
+		DX11_RELEASE(pInstancedVS);
 		DX11_RELEASE(pGrassHS);
 		DX11_RELEASE(pGrassDS);
 		DX11_RELEASE(pNoCullRS);
 		DX11_RELEASE(pDefaultPS);
 		DX11_RELEASE(pGrassPS);
+		DX11_RELEASE(pGrassTransformBuffer);
+		DX11_RELEASE(pGrassTransformSRV);
 		viewport = D3D11_VIEWPORT();
 	}
 
@@ -225,7 +250,8 @@ namespace Okay
 
 		OKAY_ASSERT(camEntity.hasComponent<Camera>(), "Camera entity doesn't have a camera component");
 		const Camera& camera = camEntity.getComponent<Camera>();
-		const Transform& camTransform = camEntity.getComponent<Transform>();
+		Transform& camTransform = camEntity.getComponent<Transform>();
+		camTransform.calculateMatrix();
 
 		using namespace DirectX;
 
@@ -238,6 +264,8 @@ namespace Okay
 		
 		DX11::updateBuffer(pRenderDataBuffer, &renderData, sizeof(GPURenderData));
 
+		pRenderTarget->clear();
+
 		// Standard mesh pipeline
 		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		pDevContext->IASetInputLayout(pPosUvNormIL);
@@ -246,14 +274,13 @@ namespace Okay
 		pDevContext->DSSetShader(nullptr, nullptr, 0u);
 		pDevContext->RSSetState(nullptr);
 		pDevContext->PSSetShader(pDefaultPS, nullptr, 0u);
-		pRenderTarget->clear();
-
 
 		ContentBrowser& content = ContentBrowser::get();
 		entt::registry& reg = pScene->getRegistry();
 		auto objGroup = reg.group<Transform, MeshComponent>();
-		DirectX::XMMATRIX worldMatrix{};
+		XMMATRIX worldMatrix{};
 
+		uint32_t indexCount;
 		for (entt::entity entity : objGroup)
 		{
 			auto [transform, meshComp] = objGroup.get<Transform, MeshComponent>(entity);
@@ -266,7 +293,7 @@ namespace Okay
 
 			transform.calculateMatrix();
 			worldMatrix = transform.matrix;
-			DirectX::XMStoreFloat4x4(&objectData.worldMatrix, worldMatrix);
+			XMStoreFloat4x4(&objectData.worldMatrix, worldMatrix);
 			objectData.uvOffset = matGPUData.uvOffset;
 			objectData.uvTiling = matGPUData.uvTiling;
 			DX11::updateBuffer(pObjectDataBuffer, &objectData, sizeof(GPUObjectData));
@@ -277,9 +304,14 @@ namespace Okay
 
 			pDevContext->PSSetShaderResources(0u, 1u, diffuseTexture.getSRV());
 
-			pDevContext->DrawIndexed(mesh.getNumIndices(), 0u, 0);
+			pDevContext->DrawIndexed(indexCount = mesh.getNumIndices(), 0u, 0);
 		}
 
+
+		pDevContext->VSSetShader(pInstancedVS, nullptr, 0u);
+		pDevContext->PSSetShader(pGrassPS, nullptr, 0u);
+
+		pDevContext->DrawIndexedInstanced(indexCount, NUM * NUM, 0u, 0, 0u);
 	}
 
 	void Renderer::onTargetResize(uint32_t width, uint32_t height)

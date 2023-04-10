@@ -52,6 +52,8 @@ namespace Okay
 		inline void setScene(Ref<Scene> pScene);
 		inline void setCustomCamera(Entity camera = Entity());
 
+		void initGrass();
+
 		void render();
 
 		void imGui();
@@ -75,13 +77,15 @@ namespace Okay
 		ID3D11Buffer* pRenderDataBuffer = nullptr;
 		ID3D11Buffer* pObjectDataBuffer = nullptr;
 
+		ID3D11Buffer* pGrassTransformBuffer = nullptr;
+		ID3D11ShaderResourceView* pGrassTransformSRV = nullptr;
+
 		ID3D11SamplerState* simp = nullptr;
 
-		ID3D11InputLayout* pPosIL = nullptr;
 		ID3D11InputLayout* pPosUvNormIL = nullptr;
 
 		ID3D11VertexShader* pMeshVS = nullptr;
-		ID3D11VertexShader* pGrassVS = nullptr;
+		ID3D11VertexShader* pInstancedVS = nullptr;
 
 		ID3D11HullShader* pGrassHS = nullptr;
 		ID3D11DomainShader* pGrassDS = nullptr;

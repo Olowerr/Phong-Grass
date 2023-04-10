@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{5bccfdd6-5da7-4349-b3a6-f3f544dd7d18}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp">
@@ -128,5 +131,22 @@
     <ClInclude Include="source\Okay\Okay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\resources\shaders\ShaderInclude.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\resources\shaders\DefaultPS.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\resources\shaders\MeshVS.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\resources\shaders\GrassPS.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\resources\shaders\InstancedVS.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
