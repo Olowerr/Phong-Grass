@@ -35,7 +35,7 @@ if (!(condition))\
 #define UNORM_TO_UCHAR(value)	unsigned char((value) * UCHAR_MAX)
 #define UCHAR_TO_UNORM(value)	float((value) / (float)UCHAR_MAX)
 
-#define RESOURCES_PATH "../resources/"
+#define RESOURCES_PATH "../PhongGrass/resources/"
 #define SHADER_PATH RESOURCES_PATH "shaders/"
 
 namespace Okay

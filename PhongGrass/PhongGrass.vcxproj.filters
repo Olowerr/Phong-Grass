@@ -132,21 +132,4 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\resources\shaders\ShaderInclude.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\resources\shaders\DefaultPS.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\resources\shaders\MeshVS.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\resources\shaders\GrassPS.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\resources\shaders\InstancedVS.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-  </ItemGroup>
 </Project>
