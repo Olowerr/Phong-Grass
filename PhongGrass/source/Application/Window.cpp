@@ -9,8 +9,18 @@
 
 std::unordered_map<HWND, Window*> Window::windows;
 
+Window::Window()
+	:hWnd(nullptr), msg(), open(false), pSwapChain(nullptr)
+{
+}
+
 Window::Window(uint32_t width, uint32_t height, const wchar_t* windowName, uint32_t renderTexFlags)
 	:open(false), msg(), pSwapChain(nullptr)
+{
+	create(width, height, windowName, renderTexFlags);
+}
+
+void Window::create(uint32_t width, uint32_t height, const wchar_t* windowName, uint32_t renderTexFlags)
 {
 	WNDCLASS winClass = {};
 	winClass.lpfnWndProc = WindowProc;
@@ -20,7 +30,7 @@ Window::Window(uint32_t width, uint32_t height, const wchar_t* windowName, uint3
 	winClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 
 	RegisterClass(&winClass);
-	
+
 	RECT rect = {};
 	rect.right = (LONG)width;
 	rect.bottom = (LONG)height;
@@ -45,9 +55,19 @@ Window::Window(uint32_t width, uint32_t height, const wchar_t* windowName, uint3
 
 Window::~Window()
 {
-	DestroyWindow(hWnd);
+	shutdown();
+}
+
+void Window::shutdown()
+{
+	if (hWnd)
+	{
+		DestroyWindow(hWnd);
+		windows.erase(hWnd);
+	}
+	hWnd = nullptr;
+
 	UnregisterClass(L"WinClass", GetModuleHandle(NULL));
-	windows.erase(hWnd);
 
 	DX11_RELEASE(pSwapChain);
 }

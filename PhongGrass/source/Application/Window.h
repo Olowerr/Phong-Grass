@@ -12,12 +12,13 @@ class Window
 public:
 	static const size_t MAX_FILENAME_LENGTH = 256ull;
 
+	Window();
 	Window(uint32_t width, uint32_t height, const wchar_t* windowName, uint32_t renderTexFlags = Okay::INVALID_UINT);
 	~Window();
-	Window(const Window&) = delete;
-	Window(Window&&) = delete;
-	Window& operator=(const Window&) = delete;
+	void shutdown();
 	
+	void create(uint32_t width, uint32_t height, const wchar_t* windowName, uint32_t renderTexFlags = Okay::INVALID_UINT);
+
 	void createRenderTexture(uint32_t flags);
 	inline Okay::Ref<Okay::RenderTexture> getRenderTexture();
 	inline const Okay::Ref<Okay::RenderTexture> getRenderTexture() const;

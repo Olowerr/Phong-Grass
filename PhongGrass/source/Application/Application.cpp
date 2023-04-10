@@ -1,57 +1,51 @@
 #include "Application.h"
-#include "DirectX/DX11.h"
-
-#include "Components/MeshComponent.h"
 
 #include "Time.h"
 
-namespace Okay
+#include "Window.h"
+#include "Graphics/Renderer.h"
+#include "Scene.h"
+
+
+using namespace Okay;
+
+struct ApplicationData
 {
-	Application::Application(const wchar_t* appName, uint32_t width, uint32_t height)
-		:window(width, height, appName, RenderTexture::RENDER | RenderTexture::DEPTH | RenderTexture::SHADER_READ | RenderTexture::SHADER_WRITE)
+	Window window;
+	Ref<Renderer> renderer;
+	Ref<Scene> scene;
+
+	ApplicationData() = default;
+	~ApplicationData() = default;
+};
+
+static ApplicationData app;
+
+void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
+{
+	app.window.create(width, height, appName, RenderTexture::RENDER | RenderTexture::DEPTH | RenderTexture::SHADER_READ);
+	app.scene = createRef<Scene>();
+	app.renderer = createRef<Renderer>(app.window.getRenderTexture(), app.scene);
+}
+
+void runApplication()
+{
+	Time::start();
+
+	while (app.window.isOpen())
 	{
-		scene = createRef<Scene>();
-		renderer = createRef<Renderer>(window.getRenderTexture(), scene);
+		Time::measure();
+		app.window.update();
 
+		app.renderer->render();
+
+		app.window.present();
 	}
+}
 
-	Application::~Application()
-	{
-	}
-
-	void Application::start()
-	{
-
-	}
-
-	void Application::update()
-	{
-
-	}
-
-	void Application::end()
-	{
-
-	}
-
-	void Application::run()
-	{
-		start();
-		Time::start();
-
-		while (window.isOpen())
-		{
-			Time::measure();
-			window.update();
-
-			update();
-
-			renderer->render();
-
-			window.present();
-		}
-
-		end();
-	}
-
+void destroyApplication()
+{
+	app.window.shutdown();
+	app.renderer = nullptr;
+	app.scene = nullptr;
 }

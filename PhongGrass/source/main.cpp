@@ -2,8 +2,9 @@
 
 int main()
 {
-	Okay::Application app(L"Phong Grass");
-	app.run();
+	startApplication(L"Phong Grass");
+	runApplication();
+	destroyApplication();
 
 	return 0;
 }
