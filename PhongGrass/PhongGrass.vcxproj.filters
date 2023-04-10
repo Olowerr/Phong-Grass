@@ -129,9 +129,4 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="resources\shaders\ShaderInclude.hlsli" />
-    <None Include="resources\shaders\MeshVS.hlsl" />
-    <None Include="..\resources\shaders\DefaultPS.hlsl" />
-  </ItemGroup>
 </Project>
