@@ -1,7 +1,9 @@
+
 # Builds
 Debug/
 Release/
 Dist/
+x64/
 
 # Int
 intermediate/

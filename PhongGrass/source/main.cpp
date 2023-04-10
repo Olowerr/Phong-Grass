@@ -1,9 +1,9 @@
-#include <iostream>
+#include "Application/Application.h"
 
 int main()
 {
-	std::cout << "hello world";
+	Okay::Application app(L"Phong Grass");
+	app.run();
 
-	getchar();
 	return 0;
 }
