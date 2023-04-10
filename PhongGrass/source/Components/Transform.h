@@ -12,10 +12,13 @@ namespace Okay
 
 		DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity();
 
-		// TODO: Implement these
-		//glm::vec3 forward() const { return glm::normalize(glm::vec3(matrix[2])); }
-		//glm::vec3 up() const	  { return glm::normalize(glm::vec3(matrix[1])); }
-		//glm::vec3 right() const   { return glm::normalize(glm::vec3(matrix[0])); }
+		DirectX::XMFLOAT3 forward() const	{ DirectX::XMFLOAT3 res; DirectX::XMStoreFloat3(&res, forwardXM()); return res; }
+		DirectX::XMFLOAT3 up() const		{ DirectX::XMFLOAT3 res; DirectX::XMStoreFloat3(&res, upXM());		return res; }
+		DirectX::XMFLOAT3 right() const		{ DirectX::XMFLOAT3 res; DirectX::XMStoreFloat3(&res, rightXM());	return res; }
+
+		DirectX::XMVECTOR forwardXM() const { return DirectX::XMVector3Normalize(matrix.r[2]); }
+		DirectX::XMVECTOR upXM() const		{ return DirectX::XMVector3Normalize(matrix.r[1]); }
+		DirectX::XMVECTOR rightXM() const   { return DirectX::XMVector3Normalize(matrix.r[0]); }
 
 		void calculateMatrix()
 		{
