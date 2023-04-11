@@ -46,6 +46,12 @@ namespace Okay
 			rsDesc.AntialiasedLineEnable = FALSE;
 			hr = pDevice->CreateRasterizerState(&rsDesc, &pNoCullRS);
 			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating noCullRS");
+			
+			rsDesc.FillMode = D3D11_FILL_WIREFRAME;
+			hr = pDevice->CreateRasterizerState(&rsDesc, &pNoCullWireframeRS);
+			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating noCullWireframeRS");
+			
+
 		}
 
 
@@ -120,11 +126,10 @@ namespace Okay
 
 constexpr uint32_t NUM = 100u;
 
-	void Renderer::initGrass(uint32_t meshId)
+	void Renderer::initGrass()
 	{
 		DX11_RELEASE(pGrassTransformBuffer);
 		DX11_RELEASE(pGrassTransformSRV);
-		grassMeshId = meshId;
 
 		using namespace DirectX;
 		
@@ -204,6 +209,8 @@ constexpr uint32_t NUM = 100u;
 
 		DX11_RELEASE(pRenderDataBuffer);
 		DX11_RELEASE(pObjectDataBuffer);
+		DX11_RELEASE(pGrassTransformBuffer);
+		DX11_RELEASE(pGrassTransformSRV);
 		DX11_RELEASE(simp);
 		DX11_RELEASE(pPosUvNormIL);
 		DX11_RELEASE(pMeshVS);
@@ -211,10 +218,9 @@ constexpr uint32_t NUM = 100u;
 		DX11_RELEASE(pGrassHS);
 		DX11_RELEASE(pGrassDS);
 		DX11_RELEASE(pNoCullRS);
+		DX11_RELEASE(pNoCullWireframeRS);
 		DX11_RELEASE(pDefaultPS);
 		DX11_RELEASE(pGrassPS);
-		DX11_RELEASE(pGrassTransformBuffer);
-		DX11_RELEASE(pGrassTransformSRV);
 		viewport = D3D11_VIEWPORT();
 	}
 
@@ -246,7 +252,7 @@ constexpr uint32_t NUM = 100u;
 
 	void Renderer::imGui()
 	{
-		if (!ImGui::Begin("Reload Shaders"))
+		if (!ImGui::Begin("Renderer"))
 		{
 			ImGui::End();
 			return;
@@ -262,6 +268,9 @@ constexpr uint32_t NUM = 100u;
 		imGuiUpdateShader(&pGrassHS, SHADER_PATH "GrassHS.hlsl", "GrassHS");
 		imGuiUpdateShader(&pGrassDS, SHADER_PATH "GrassDS.hlsl", "GrassDS");
 		imGuiUpdateShader(&pGrassPS, SHADER_PATH "GrassPS.hlsl", "GrassPS");
+
+		ImGui::Separator();
+		ImGui::Checkbox("Wireframe grass", &wireFrameGrass);
 
 		ImGui::End();
 	}
@@ -337,7 +346,7 @@ constexpr uint32_t NUM = 100u;
 		pDevContext->VSSetShader(pInstancedTessVS, nullptr, 0u);
 		pDevContext->HSSetShader(pGrassHS, nullptr, 0u);
 		pDevContext->DSSetShader(pGrassDS, nullptr, 0u);
-		pDevContext->RSSetState(pNoCullRS);
+		pDevContext->RSSetState(wireFrameGrass ? pNoCullWireframeRS : pNoCullRS);
 		pDevContext->PSSetShader(pGrassPS, nullptr, 0u);
 
 		pDevContext->DrawIndexedInstanced(grassMesh.getNumIndices(), NUM * NUM, 0u, 0, 0u);

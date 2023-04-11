@@ -52,7 +52,8 @@ namespace Okay
 		inline void setScene(Ref<Scene> pScene);
 		inline void setCustomCamera(Entity camera = Entity());
 
-		void initGrass(uint32_t meshId);
+		inline void setGrassMeshId(uint32_t meshId);
+		void initGrass();
 
 		void render();
 
@@ -72,6 +73,7 @@ namespace Okay
 		void updateCameraBuffer(const Entity& cameraEntity); 
 
 		uint32_t grassMeshId = Okay::INVALID_UINT;
+		bool wireFrameGrass = false;
 
 	private: // Buffers and stuff
 		ID3D11DeviceContext* pDevContext;
@@ -93,6 +95,7 @@ namespace Okay
 		ID3D11DomainShader* pGrassDS = nullptr;
 
 		ID3D11RasterizerState* pNoCullRS = nullptr;
+		ID3D11RasterizerState* pNoCullWireframeRS = nullptr;
 		D3D11_VIEWPORT viewport;
 
 		ID3D11PixelShader* pDefaultPS = nullptr;
@@ -108,5 +111,6 @@ namespace Okay
 		pScene = scene;
 	}
 
-	inline void Renderer::setCustomCamera(Entity camera) { customCamera = camera; }
+	inline void Renderer::setCustomCamera(Entity camera)		{ customCamera = camera; }
+	inline void Okay::Renderer::setGrassMeshId(uint32_t meshId)	{ grassMeshId = meshId; }
 }

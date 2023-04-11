@@ -14,16 +14,16 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 {
 	HS_CONSTANT_DATA_OUTPUT output;
 
-	output.EdgeTessFactor[0] = 
-		output.EdgeTessFactor[1] = 
-		output.EdgeTessFactor[2] = 
-		output.InsideTessFactor = 5.f;
+    output.EdgeTessFactor[0] = 4.f;
+	output.EdgeTessFactor[1] = 4.f;
+	output.EdgeTessFactor[2] = 4.f;
+	output.InsideTessFactor  = 4.f;
 
 	return output;
 }
 
 [domain("tri")]
-[partitioning("fractional_odd")]
+[partitioning("fractional_even")]
 [outputtopology("triangle_cw")]
 [outputcontrolpoints(3)]
 [patchconstantfunc("CalcHSPatchConstants")]

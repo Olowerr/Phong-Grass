@@ -23,6 +23,10 @@ struct ApplicationData
 	Renderer renderer;
 	Ref<Scene> scene;
 
+	float cameraSpeed = 5.f;
+	std::vector<std::pair<uint32_t, std::string>> grassMeshes;
+	uint32_t currentSelected = 0u;
+
 	ApplicationData() = default;
 	~ApplicationData() = default;
 };
@@ -51,11 +55,23 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	Entity camera = app.scene->createEntity();
 	camera.addComponent<Camera>();
 	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(2.f, 2.f, -5.f);
-
 	app.scene->setMainCamera(camera);
 
-	content.importFile(RESOURCES_PATH "meshes/icoSphere.fbx");
-	app.renderer.initGrass(content.getAmount<Mesh>() - 1u);
+
+	const uint32_t countB4 = content.getAmount<Mesh>();
+
+	content.importFile(RESOURCES_PATH "meshes/grass1.fbx");
+	content.importFile(RESOURCES_PATH "meshes/grass2.fbx");
+	content.importFile(RESOURCES_PATH "meshes/grass3.fbx");
+
+	app.grassMeshes.reserve(5);
+	app.grassMeshes.emplace_back(std::pair{ countB4,	 "grass1"});
+	app.grassMeshes.emplace_back(std::pair{ countB4 + 1, "grass2"});
+	app.grassMeshes.emplace_back(std::pair{ countB4 + 2, "grass3"});
+	app.renderer.setGrassMeshId(countB4 + 2);
+	
+
+	app.renderer.initGrass();
 }
 
 void runApplication()
@@ -73,8 +89,27 @@ void runApplication()
 
 		if (ImGui::Begin("Phong Grass"))
 		{
+			ImGui::PushItemWidth(-50.f);
+
 			ImGui::Text("FPS: %.3f", 1.f / Time::getDT());
 			ImGui::Text("MS:  %.6f", Time::getDT() * 1000.f);
+			
+			ImGui::Separator();
+			ImGui::DragFloat("Cam speed", &app.cameraSpeed, 0.05f, 0.f, 10.f);
+			
+			ImGui::Separator();
+			if (ImGui::BeginCombo("Select", app.grassMeshes[app.currentSelected].second.c_str()))
+			{
+				for (uint32_t i = 0; i < (uint32_t)app.grassMeshes.size(); i++)
+				{
+					if (ImGui::Selectable(app.grassMeshes[i].second.c_str(), i == app.currentSelected))
+						app.renderer.setGrassMeshId(app.grassMeshes[app.currentSelected = i].first);
+				}
+
+				ImGui::EndCombo();
+			}
+
+			ImGui::PopItemWidth();
 		}
 		ImGui::End();
 
@@ -100,9 +135,7 @@ void updateCamera()
 	using namespace Okay;
 	using namespace DirectX;
 
-	const float baseSpeed = 5.f;
-
-	const float frameSpeed = Time::getDT() * baseSpeed * (Input::isKeyDown(Key::L_SHIFT) ? 10.f : 1.f);
+	const float frameSpeed = Time::getDT() * app.cameraSpeed * (Input::isKeyDown(Key::L_SHIFT) ? 10.f : 1.f);
 
 	const float xInput = (float)Input::isKeyDown(Key::D) - (float)Input::isKeyDown(Key::A);
 	const float yInput = (float)Input::isKeyDown(Key::SPACE) - (float)Input::isKeyDown(Key::L_CTRL);

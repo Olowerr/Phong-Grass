@@ -13,6 +13,8 @@ float3 orthogonalProjection(float3 position, float3 planePos, float3 planeNormal
     return position - dot(position - planePos, planeNormal) * planeNormal;
 }
 
+static const float shapeFactor = 3.f / 4.f;
+
 [domain("tri")]
 TransformedVertex main(HS_CONSTANT_DATA_OUTPUT input, float3 domain : SV_DomainLocation, const OutputPatch<InputVertex, NUM_CONTROL_POINTS> patch)
 {
@@ -22,7 +24,6 @@ TransformedVertex main(HS_CONSTANT_DATA_OUTPUT input, float3 domain : SV_DomainL
     output.normal = normalize(patch[0].normal * domain.x + patch[1].normal * domain.y + patch[2].normal * domain.z);
     output.uv = patch[0].uv * domain.x + patch[1].uv * domain.y + patch[2].uv * domain.z;
     
-    float shapeFactor = 3.f / 4.f;
     
 #if 0
     float3 res = 
