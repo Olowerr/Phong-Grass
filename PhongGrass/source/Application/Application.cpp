@@ -54,7 +54,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 	app.scene->setMainCamera(camera);
 
-	content.importFile(RESOURCES_PATH "meshes/smoothCube.fbx");
+	content.importFile(RESOURCES_PATH "meshes/icoSphere.fbx");
 	app.renderer.initGrass(content.getAmount<Mesh>() - 1u);
 }
 
@@ -70,6 +70,13 @@ void runApplication()
 		imGuiNewFrame();
 
 		updateCamera();
+
+		if (ImGui::Begin("Phong Grass"))
+		{
+			ImGui::Text("FPS: %.3f", 1.f / Time::getDT());
+			ImGui::Text("MS:  %.6f", Time::getDT() * 1000.f);
+		}
+		ImGui::End();
 
 		app.renderer.imGui();
 		app.renderer.render();

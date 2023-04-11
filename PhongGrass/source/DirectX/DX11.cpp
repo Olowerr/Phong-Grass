@@ -267,9 +267,9 @@ bool DX11::createShader(std::string_view path, ShaderType** ppShader, std::strin
 
 		// If neither are defined a compiler error is produced. Forcing the user to ensure the correct one is used
 #if defined(DIST)
-		uint32_t optimizationLevel = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+		uint32_t optimizationLevel = D3DCOMPILE_OPTIMIZATION_LEVEL3 | D3DCOMPILE_SKIP_VALIDATION;
 #elif defined(_DEBUG)
-		uint32_t optimizationLevel = D3DCOMPILE_OPTIMIZATION_LEVEL0;
+		uint32_t optimizationLevel = D3DCOMPILE_OPTIMIZATION_LEVEL0 | D3DCOMPILE_DEBUG;
 #elif defined(NDEBUG)
 		uint32_t optimizationLevel = D3DCOMPILE_OPTIMIZATION_LEVEL2;
 #endif
