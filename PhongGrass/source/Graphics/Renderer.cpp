@@ -120,10 +120,11 @@ namespace Okay
 
 constexpr uint32_t NUM = 100u;
 
-	void Renderer::initGrass()
+	void Renderer::initGrass(uint32_t meshId)
 	{
 		DX11_RELEASE(pGrassTransformBuffer);
 		DX11_RELEASE(pGrassTransformSRV);
+		grassMeshId = meshId;
 
 		using namespace DirectX;
 		
@@ -302,7 +303,6 @@ constexpr uint32_t NUM = 100u;
 		auto objGroup = reg.group<Transform, MeshComponent>();
 		XMMATRIX worldMatrix{};
 
-		uint32_t indexCount;
 		for (entt::entity entity : objGroup)
 		{
 			auto [transform, meshComp] = objGroup.get<Transform, MeshComponent>(entity);
@@ -326,17 +326,21 @@ constexpr uint32_t NUM = 100u;
 
 			pDevContext->PSSetShaderResources(0u, 1u, diffuseTexture.getSRV());
 
-			pDevContext->DrawIndexed(indexCount = mesh.getNumIndices(), 0u, 0);
+			pDevContext->DrawIndexed(mesh.getNumIndices(), 0u, 0);
 		}
 
+		const Mesh& grassMesh = content.getAsset<Mesh>(grassMeshId);
+
 		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		pDevContext->IASetVertexBuffers(0u, Mesh::NumBuffers, grassMesh.getBuffers(), Mesh::Stride, Mesh::Offset);
+		pDevContext->IASetIndexBuffer(grassMesh.getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0u);
 		pDevContext->VSSetShader(pInstancedTessVS, nullptr, 0u);
 		pDevContext->HSSetShader(pGrassHS, nullptr, 0u);
 		pDevContext->DSSetShader(pGrassDS, nullptr, 0u);
 		pDevContext->RSSetState(pNoCullRS);
 		pDevContext->PSSetShader(pGrassPS, nullptr, 0u);
 
-		pDevContext->DrawIndexedInstanced(indexCount, NUM * NUM, 0u, 0, 0u);
+		pDevContext->DrawIndexedInstanced(grassMesh.getNumIndices(), NUM * NUM, 0u, 0, 0u);
 	}
 
 	void Renderer::onTargetResize(uint32_t width, uint32_t height)

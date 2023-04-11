@@ -53,6 +53,9 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(2.f, 2.f, -5.f);
 
 	app.scene->setMainCamera(camera);
+
+	content.importFile(RESOURCES_PATH "meshes/smoothCube.fbx");
+	app.renderer.initGrass(content.getAmount<Mesh>() - 1u);
 }
 
 void runApplication()
@@ -60,7 +63,6 @@ void runApplication()
 	imGuiStart();
 	Time::start();
 
-	app.renderer.initGrass();
 	while (app.window.isOpen())
 	{
 		Time::measure();

@@ -52,7 +52,7 @@ namespace Okay
 		inline void setScene(Ref<Scene> pScene);
 		inline void setCustomCamera(Entity camera = Entity());
 
-		void initGrass();
+		void initGrass(uint32_t meshId);
 
 		void render();
 
@@ -70,6 +70,8 @@ namespace Okay
 
 		void onTargetResize(uint32_t width, uint32_t height);
 		void updateCameraBuffer(const Entity& cameraEntity); 
+
+		uint32_t grassMeshId = Okay::INVALID_UINT;
 
 	private: // Buffers and stuff
 		ID3D11DeviceContext* pDevContext;
