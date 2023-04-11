@@ -82,16 +82,14 @@ namespace Okay
 			hr = pDevice->CreateInputLayout(inputLayoutDesc, 3u, shaderData.c_str(), shaderData.length(), &pPosUvNormIL);
 			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating input layout");
 
-			result = DX11::createShader(SHADER_PATH "InstancedVS.hlsl", &pInstancedVS);
+			result = DX11::createShader(SHADER_PATH "InstancedTessVS.hlsl", &pInstancedTessVS);
 			OKAY_ASSERT(result, "Failed creating instanced vertex shader");
 
-#if TESSELLATION
 			result = DX11::createShader(SHADER_PATH "GrassHS.hlsl", &pGrassHS);
 			OKAY_ASSERT(result, "Failed creating grass hull shhader");
 
 			result = DX11::createShader(SHADER_PATH "GrassDS.hlsl", &pGrassDS);
 			OKAY_ASSERT(result, "Failed creating grass domain shhader");
-#endif
 
 			result = DX11::createShader(SHADER_PATH "GrassPS.hlsl", &pGrassPS);
 			OKAY_ASSERT(result, "Failed creating grass pixel shader");
@@ -208,7 +206,7 @@ constexpr uint32_t NUM = 100u;
 		DX11_RELEASE(simp);
 		DX11_RELEASE(pPosUvNormIL);
 		DX11_RELEASE(pMeshVS);
-		DX11_RELEASE(pInstancedVS);
+		DX11_RELEASE(pInstancedTessVS);
 		DX11_RELEASE(pGrassHS);
 		DX11_RELEASE(pGrassDS);
 		DX11_RELEASE(pNoCullRS);
@@ -307,8 +305,11 @@ constexpr uint32_t NUM = 100u;
 			pDevContext->DrawIndexed(indexCount = mesh.getNumIndices(), 0u, 0);
 		}
 
-
-		pDevContext->VSSetShader(pInstancedVS, nullptr, 0u);
+		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		pDevContext->VSSetShader(pInstancedTessVS, nullptr, 0u);
+		pDevContext->HSSetShader(pGrassHS, nullptr, 0u);
+		pDevContext->DSSetShader(pGrassDS, nullptr, 0u);
+		pDevContext->RSSetState(pNoCullRS);
 		pDevContext->PSSetShader(pGrassPS, nullptr, 0u);
 
 		pDevContext->DrawIndexedInstanced(indexCount, NUM * NUM, 0u, 0, 0u);

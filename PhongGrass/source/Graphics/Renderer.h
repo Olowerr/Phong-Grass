@@ -85,7 +85,7 @@ namespace Okay
 		ID3D11InputLayout* pPosUvNormIL = nullptr;
 
 		ID3D11VertexShader* pMeshVS = nullptr;
-		ID3D11VertexShader* pInstancedVS = nullptr;
+		ID3D11VertexShader* pInstancedTessVS = nullptr;
 
 		ID3D11HullShader* pGrassHS = nullptr;
 		ID3D11DomainShader* pGrassDS = nullptr;
