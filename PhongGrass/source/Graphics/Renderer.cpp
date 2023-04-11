@@ -229,16 +229,40 @@ constexpr uint32_t NUM = 100u;
 		onTargetResize(dims.x, dims.y);
 	}
 
+	template<typename ShaderType>
+	void imGuiUpdateShader(ShaderType** ppShader, std::string_view shaderPath, std::string_view shaderName)
+	{
+		if (!ImGui::Button(shaderName.data()))
+			return;
+
+		ShaderType* newShader = nullptr;
+		if (!DX11::createShader(shaderPath, &newShader))
+			return;
+
+		DX11_RELEASE((*ppShader));
+		*ppShader = newShader;
+	}
+
 	void Renderer::imGui()
 	{
-		/*if (!ImGui::Begin("Shaders"))
+		if (!ImGui::Begin("Reload Shaders"))
 		{
 			ImGui::End();
 			return;
 		}
 
+		ImGui::Text("Standard shaders");
+		imGuiUpdateShader(&pMeshVS, SHADER_PATH "MeshVS.hlsl", "MeshVS");
+		imGuiUpdateShader(&pDefaultPS, SHADER_PATH "DefaultPS.hlsl", "DefaultPS");
 
-		ImGui::End();*/
+		ImGui::Separator();
+		ImGui::Text("Grass shaders");
+		imGuiUpdateShader(&pInstancedTessVS, SHADER_PATH "InstancedTessVS.hlsl", "InstancedTessVS");
+		imGuiUpdateShader(&pGrassHS, SHADER_PATH "GrassHS.hlsl", "GrassHS");
+		imGuiUpdateShader(&pGrassDS, SHADER_PATH "GrassDS.hlsl", "GrassDS");
+		imGuiUpdateShader(&pGrassPS, SHADER_PATH "GrassPS.hlsl", "GrassPS");
+
+		ImGui::End();
 	}
 
 	void Renderer::render()

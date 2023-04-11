@@ -11,6 +11,10 @@
 #include "Components/MeshComponent.h"
 #include "Components/Transform.h"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_dx11.h"
+#include "imgui/imgui_impl_win32.h"
+
 using namespace Okay;
 
 struct ApplicationData
@@ -26,6 +30,10 @@ struct ApplicationData
 static ApplicationData app;
 
 void updateCamera();
+void imGuiStart();
+void imGuiNewFrame();
+void imGuiRender();
+void imGuiDestroy();
 
 void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 {
@@ -49,6 +57,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 void runApplication()
 {
+	imGuiStart();
 	Time::start();
 
 	app.renderer.initGrass();
@@ -56,9 +65,13 @@ void runApplication()
 	{
 		Time::measure();
 		app.window.update();
+		imGuiNewFrame();
 
 		updateCamera();
+
+		app.renderer.imGui();
 		app.renderer.render();
+		imGuiRender();
 
 		app.window.present();
 	}
@@ -69,6 +82,8 @@ void destroyApplication()
 	app.window.shutdown();
 	app.renderer.shutdown();
 	app.scene = nullptr;
+
+	imGuiDestroy();
 }
 
 void updateCamera()
@@ -97,4 +112,40 @@ void updateCamera()
 
 	tra.rotation.x += xRot * 3.f * Time::getDT();
 	tra.rotation.y += yRot * 3.f * Time::getDT();
+}
+
+void imGuiStart()
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+	ImGui_ImplWin32_Init(app.window.getHWnd());
+	ImGui_ImplDX11_Init(DX11::get().getDevice(), DX11::get().getDeviceContext());
+}
+
+void imGuiNewFrame()
+{
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+}
+
+void imGuiRender()
+{
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+	ImGui::UpdatePlatformWindows();
+	ImGui::RenderPlatformWindowsDefault();
+}
+
+void imGuiDestroy()
+{
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }

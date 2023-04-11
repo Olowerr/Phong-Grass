@@ -226,6 +226,13 @@ SET ERRORLEVEL=0</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="deps\include\imgui\imgui.cpp" />
+    <ClCompile Include="deps\include\imgui\imgui_demo.cpp" />
+    <ClCompile Include="deps\include\imgui\imgui_draw.cpp" />
+    <ClCompile Include="deps\include\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="deps\include\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="deps\include\imgui\imgui_tables.cpp" />
+    <ClCompile Include="deps\include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="source\Application\Application.cpp" />
     <ClCompile Include="source\Application\Input\Input.cpp" />
     <ClCompile Include="source\Application\Scene.cpp" />
@@ -242,6 +249,14 @@ SET ERRORLEVEL=0</Command>
     <ClCompile Include="source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="deps\include\imgui\imconfig.h" />
+    <ClInclude Include="deps\include\imgui\imgui.h" />
+    <ClInclude Include="deps\include\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="deps\include\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="deps\include\imgui\imgui_internal.h" />
+    <ClInclude Include="deps\include\imgui\imstb_rectpack.h" />
+    <ClInclude Include="deps\include\imgui\imstb_textedit.h" />
+    <ClInclude Include="deps\include\imgui\imstb_truetype.h" />
     <ClInclude Include="source\Application\Application.h" />
     <ClInclude Include="source\Application\Entity.h" />
     <ClInclude Include="source\Application\Input\Input.h" />
