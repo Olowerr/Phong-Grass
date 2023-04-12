@@ -11,6 +11,8 @@
 #include "Components/MeshComponent.h"
 #include "Components/Transform.h"
 
+#include "poisson-disk-sampling/poisson_disk_sampling.h"
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
@@ -27,17 +29,38 @@ struct ApplicationData
 	std::vector<std::pair<uint32_t, std::string>> grassMeshes;
 	uint32_t currentSelected = 0u;
 
+	float grassDistRadius = 0.1f;
+	std::array<float, 2> min{-20.f, -20.f}, max{20.f, 20.f};
+	uint32_t seed = 0u;
+	uint32_t numBlades = 0u;
+
 	ApplicationData() = default;
 	~ApplicationData() = default;
 };
 
 static ApplicationData app;
+namespace DX = DirectX;
 
 void updateCamera();
 void imGuiStart();
 void imGuiNewFrame();
 void imGuiRender();
 void imGuiDestroy();
+
+void generateGrassTransforms(std::vector<DX::XMFLOAT4X4>& result)
+{
+	srand(app.seed);
+
+	std::vector<std::array<float, 2>> points = std::move(thinks::PoissonDiskSampling(app.grassDistRadius, app.min, app.max, 30u, app.seed));
+
+	app.numBlades = (uint32_t)points.size();
+	result.resize(points.size());
+	for (size_t i = 0; i < points.size(); i++)
+	{
+		DX::XMStoreFloat4x4(&result[i],
+			DX::XMMatrixTranspose(DX::XMMatrixRotationY((rand() / (float)RAND_MAX) * DX::XM_2PI) * DX::XMMatrixTranslation(points[i][0], 0.f, points[i][1])));
+	}
+}
 
 void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 {
@@ -70,18 +93,8 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	app.grassMeshes.emplace_back(std::pair{ countB4 + 2, "grass3"});
 	app.renderer.setGrassMeshId(countB4 + 2);
 	
-	size_t NUM = 100;
-	using namespace DirectX;
-
-	std::vector<XMFLOAT4X4> matrices(NUM * NUM);
-	for (size_t i = 0; i < NUM; i++)
-	{
-		for (size_t j = 0; j < NUM; j++)
-		{
-			XMStoreFloat4x4(&matrices[i * NUM + j], XMMatrixTranspose(XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixTranslation((float)i - NUM / 2.f, 0.f, (float)j - NUM / 2.f)));
-		}
-	}
-
+	std::vector<DX::XMFLOAT4X4> matrices;
+	generateGrassTransforms(matrices);
 	app.renderer.initGrass(matrices);
 }
 
@@ -100,16 +113,18 @@ void runApplication()
 
 		if (ImGui::Begin("Phong Grass"))
 		{
-			ImGui::PushItemWidth(-50.f);
+			ImGui::PushItemWidth(-1.f);
 
 			ImGui::Text("FPS: %.3f", 1.f / Time::getDT());
 			ImGui::Text("MS:  %.6f", Time::getDT() * 1000.f);
 			
 			ImGui::Separator();
-			ImGui::DragFloat("Cam speed", &app.cameraSpeed, 0.05f, 0.f, 10.f);
+			ImGui::Text("Cam Speed:");
+			ImGui::SameLine();
+			ImGui::DragFloat("##CamSpeed", &app.cameraSpeed, 0.05f, 0.f, 10.f);
 			
 			ImGui::Separator();
-			if (ImGui::BeginCombo("Select", app.grassMeshes[app.currentSelected].second.c_str()))
+			if (ImGui::BeginCombo("##select", app.grassMeshes[app.currentSelected].second.c_str()))
 			{
 				for (uint32_t i = 0; i < (uint32_t)app.grassMeshes.size(); i++)
 				{
@@ -119,6 +134,34 @@ void runApplication()
 
 				ImGui::EndCombo();
 			}
+
+			ImGui::Separator();
+
+			ImGui::Text("Num blades: %u", app.numBlades);
+
+			ImGui::Text("Radius:     ");
+			ImGui::SameLine();
+			ImGui::DragFloat("##radius", &app.grassDistRadius, 0.0001f, 0.f, 10.f, "%.4f");
+			
+			ImGui::Text("Min:        ");
+			ImGui::SameLine();
+			ImGui::DragFloat2("##min", app.min.data(), 0.1f);
+
+			ImGui::Text("Max:        ");
+			ImGui::SameLine();
+			ImGui::DragFloat2("##max", app.max.data(), 0.1f);
+
+			ImGui::Text("Seed:       ");
+			ImGui::SameLine();
+			ImGui::InputInt("##seed", (int*)&app.seed, 1, 10);
+
+			if (ImGui::Button("Generate grass"))
+			{
+				std::vector<DX::XMFLOAT4X4> matrices;
+				generateGrassTransforms(matrices);
+				app.renderer.initGrass(matrices);
+			}
+
 
 			ImGui::PopItemWidth();
 		}
