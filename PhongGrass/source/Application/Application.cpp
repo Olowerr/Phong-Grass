@@ -70,8 +70,19 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	app.grassMeshes.emplace_back(std::pair{ countB4 + 2, "grass3"});
 	app.renderer.setGrassMeshId(countB4 + 2);
 	
+	size_t NUM = 100;
+	using namespace DirectX;
 
-	app.renderer.initGrass();
+	std::vector<XMFLOAT4X4> matrices(NUM * NUM);
+	for (size_t i = 0; i < NUM; i++)
+	{
+		for (size_t j = 0; j < NUM; j++)
+		{
+			XMStoreFloat4x4(&matrices[i * NUM + j], XMMatrixTranspose(XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixTranslation((float)i - NUM / 2.f, 0.f, (float)j - NUM / 2.f)));
+		}
+	}
+
+	app.renderer.initGrass(matrices);
 }
 
 void runApplication()

@@ -53,7 +53,7 @@ namespace Okay
 		inline void setCustomCamera(Entity camera = Entity());
 
 		inline void setGrassMeshId(uint32_t meshId);
-		void initGrass();
+		void initGrass(const std::vector<DirectX::XMFLOAT4X4>& grassTransforms);
 
 		void render();
 
@@ -74,6 +74,7 @@ namespace Okay
 
 		uint32_t grassMeshId = Okay::INVALID_UINT;
 		bool wireFrameGrass = false;
+		uint32_t numGrassBlades = 0u;
 
 	private: // Buffers and stuff
 		ID3D11DeviceContext* pDevContext;

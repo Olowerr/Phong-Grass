@@ -124,30 +124,19 @@ namespace Okay
 		pDevContext->OMSetRenderTargets(1u, pRenderTarget->getRTV(), *pRenderTarget->getDSV());
 	}
 
-constexpr uint32_t NUM = 100u;
-
-	void Renderer::initGrass()
+	void Renderer::initGrass(const std::vector<DirectX::XMFLOAT4X4>& grassTransforms)
 	{
 		DX11_RELEASE(pGrassTransformSRV);
 
-		using namespace DirectX;
-		
-		std::vector<XMFLOAT4X4> matrices(NUM * NUM);
-		for (size_t i = 0; i < NUM; i++)
-		{
-			for (size_t j = 0; j < NUM; j++)
-			{
-				XMStoreFloat4x4(&matrices[i * NUM + j], XMMatrixTranspose(XMMatrixScaling(0.5f, 0.5f, 0.5f) * XMMatrixTranslation((float)i - NUM / 2.f, 0.f, (float)j - NUM / 2.f)));
-			}
-		}
+		numGrassBlades = (uint32_t)grassTransforms.size();
 
 		HRESULT hr;
 		ID3D11Buffer* pGrassTransformBuffer = nullptr;
 
-		hr = DX11::createStructuredBuffer(&pGrassTransformBuffer, matrices.data(), 64u, NUM * NUM);
+		hr = DX11::createStructuredBuffer(&pGrassTransformBuffer, grassTransforms.data(), (uint32_t)sizeof(DirectX::XMFLOAT4X4), numGrassBlades);
 		OKAY_ASSERT(SUCCEEDED(hr), "Failed creating grass buffer");
 
-		hr = DX11::createStructuredSRV(&pGrassTransformSRV, pGrassTransformBuffer, NUM * NUM);
+		hr = DX11::createStructuredSRV(&pGrassTransformSRV, pGrassTransformBuffer, numGrassBlades);
 		OKAY_ASSERT(SUCCEEDED(hr), "Failed creating grass SRV");
 
 		pGrassTransformBuffer->Release();
@@ -352,7 +341,7 @@ constexpr uint32_t NUM = 100u;
 		pDevContext->RSSetState(wireFrameGrass ? pNoCullWireframeRS : pNoCullRS);
 		pDevContext->PSSetShader(pGrassPS, nullptr, 0u);
 
-		pDevContext->DrawIndexedInstanced(grassMesh.getNumIndices(), NUM * NUM, 0u, 0, 0u);
+		pDevContext->DrawIndexedInstanced(grassMesh.getNumIndices(), numGrassBlades, 0u, 0, 0u);
 	}
 
 	void Renderer::onTargetResize(uint32_t width, uint32_t height)
