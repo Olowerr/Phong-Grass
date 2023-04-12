@@ -8,26 +8,39 @@ struct HS_CONSTANT_DATA_OUTPUT
 
 #define NUM_CONTROL_POINTS 3
 
+float3 extractTranslation(uint instanceID)
+{
+    return instanceTransforms[instanceID][3].xyz;
+}
+
 HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
-	InputPatch<InputVertex, NUM_CONTROL_POINTS> ip,
+	InputPatch<GrassVertex, NUM_CONTROL_POINTS> ip,
 	uint patchID : SV_PrimitiveID)
 {
 	HS_CONSTANT_DATA_OUTPUT output;
-
-    output.EdgeTessFactor[0] = 4.f;
-	output.EdgeTessFactor[1] = 4.f;
-	output.EdgeTessFactor[2] = 4.f;
-	output.InsideTessFactor  = 4.f;
+    
+    const float distance = length(instanceTransforms[ip[0].instanceID][3].xyz - camPos);
+    const float tessellationFactor = pow(1.f - (distance / maxGrassAppliedDistance), tessGrassFactorExponent);
+    
+    output.EdgeTessFactor[0] = max(tessellationFactor * maxGrassTessFactor, 1.f);
+	output.EdgeTessFactor[1] = max(tessellationFactor * maxGrassTessFactor, 1.f);
+	output.EdgeTessFactor[2] = max(tessellationFactor * maxGrassTessFactor, 1.f);
+    output.InsideTessFactor = max(tessellationFactor * maxGrassTessFactor, 1.f);
 
 	return output;
 }
 
 [domain("tri")]
-[partitioning("fractional_even")]
+[partitioning("fractional_odd")]
 [outputtopology("triangle_cw")]
 [outputcontrolpoints(3)]
 [patchconstantfunc("CalcHSPatchConstants")]
-InputVertex main(InputPatch<InputVertex, NUM_CONTROL_POINTS> ip, uint i : SV_OutputControlPointID)
+InputVertex main(InputPatch<GrassVertex, NUM_CONTROL_POINTS> ip, uint i : SV_OutputControlPointID)
 {
-    return ip[i];
+    InputVertex vertex;
+    vertex.pos = ip[i].pos;
+    vertex.uv = ip[i].uv;
+    vertex.normal = ip[i].normal;
+
+    return vertex;
 }

@@ -15,6 +15,14 @@ struct TransformedVertex
     float3 worldPos : W_POS;
 };
 
+struct GrassVertex
+{
+    float3 pos : POSITION;
+    float2 uv : UV;         // Temp (maybe)
+    float3 normal : NORMAL; // Temp (maybe)
+    uint instanceID : INSTANCE_ID;
+};
+
 cbuffer renderData : register(b0)
 {
     float4x4 viewProjMatrix;

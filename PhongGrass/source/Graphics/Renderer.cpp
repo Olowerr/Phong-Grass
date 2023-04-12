@@ -149,6 +149,7 @@ namespace Okay
 		pGrassTransformBuffer->Release();
 
 		pDevContext->VSSetShaderResources(1, 1, &pGrassTransformSRV);
+		pDevContext->HSSetShaderResources(1, 1, &pGrassTransformSRV);
 	}
 
 	Renderer::Renderer()

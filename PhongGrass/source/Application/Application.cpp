@@ -29,7 +29,7 @@ struct ApplicationData
 	std::vector<std::pair<uint32_t, std::string>> grassMeshes;
 	uint32_t currentSelected = 0u;
 
-	float grassDistRadius = 1.f;
+	float grassDistRadius = 0.6f;
 	std::array<float, 2> min{-20.f, -20.f}, max{20.f, 20.f};
 	uint32_t seed = 0u;
 	uint32_t numBlades = 0u;
@@ -51,7 +51,6 @@ void imGuiDestroy();
 void generateGrassTransforms(std::vector<DX::XMFLOAT4X4>& result)
 {
 	srand(app.seed);
-
 	std::vector<std::array<float, 2>> points = std::move(thinks::PoissonDiskSampling(app.grassDistRadius, app.min, app.max, 30u, app.seed));
 
 	app.numBlades = (uint32_t)points.size();
@@ -152,11 +151,13 @@ void runApplication()
 			
 			ImGui::Text("Min:        ");
 			ImGui::SameLine();
-			ImGui::DragFloat2("##min", app.min.data(), 0.1f);
+			ImGui::DragFloat("##min", app.min.data(), 0.05f);
+			app.min[1] = app.min[0];
 
 			ImGui::Text("Max:        ");
 			ImGui::SameLine();
-			ImGui::DragFloat2("##max", app.max.data(), 0.1f);
+			ImGui::DragFloat("##max", app.max.data(), 0.05f);
+			app.max[1] = app.max[0];
 
 			ImGui::Text("Seed:       ");
 			ImGui::SameLine();
