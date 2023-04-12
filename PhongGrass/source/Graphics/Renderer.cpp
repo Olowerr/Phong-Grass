@@ -128,7 +128,6 @@ constexpr uint32_t NUM = 100u;
 
 	void Renderer::initGrass()
 	{
-		DX11_RELEASE(pGrassTransformBuffer);
 		DX11_RELEASE(pGrassTransformSRV);
 
 		using namespace DirectX;
@@ -143,10 +142,15 @@ constexpr uint32_t NUM = 100u;
 		}
 
 		HRESULT hr;
+		ID3D11Buffer* pGrassTransformBuffer = nullptr;
+
 		hr = DX11::createStructuredBuffer(&pGrassTransformBuffer, matrices.data(), 64u, NUM * NUM);
 		OKAY_ASSERT(SUCCEEDED(hr), "Failed creating grass buffer");
+
 		hr = DX11::createStructuredSRV(&pGrassTransformSRV, pGrassTransformBuffer, NUM * NUM);
 		OKAY_ASSERT(SUCCEEDED(hr), "Failed creating grass SRV");
+
+		pGrassTransformBuffer->Release();
 
 		pDevContext->VSSetShaderResources(1, 1, &pGrassTransformSRV);
 	}
@@ -209,7 +213,6 @@ constexpr uint32_t NUM = 100u;
 
 		DX11_RELEASE(pRenderDataBuffer);
 		DX11_RELEASE(pObjectDataBuffer);
-		DX11_RELEASE(pGrassTransformBuffer);
 		DX11_RELEASE(pGrassTransformSRV);
 		DX11_RELEASE(simp);
 		DX11_RELEASE(pPosUvNormIL);

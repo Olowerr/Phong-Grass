@@ -81,7 +81,6 @@ namespace Okay
 		ID3D11Buffer* pRenderDataBuffer = nullptr;
 		ID3D11Buffer* pObjectDataBuffer = nullptr;
 
-		ID3D11Buffer* pGrassTransformBuffer = nullptr;
 		ID3D11ShaderResourceView* pGrassTransformSRV = nullptr;
 
 		ID3D11SamplerState* simp = nullptr;
