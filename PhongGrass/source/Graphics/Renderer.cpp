@@ -29,6 +29,9 @@ namespace Okay
 
 			hr = DX11::createConstantBuffer(&pObjectDataBuffer, nullptr, sizeof(GPUObjectData), false);
 			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating pObjectDataBuffer");
+
+			hr = DX11::createConstantBuffer(&pGrassTessDataBuffer, nullptr, sizeof(GPUGrassData), false);
+			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating pGrassTessDataBuffer");
 		}
 
 		// Rasterizer states
@@ -107,18 +110,22 @@ namespace Okay
 
 		pDevContext->VSSetConstantBuffers(0, 1, &pRenderDataBuffer);
 		pDevContext->VSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+		pDevContext->VSSetConstantBuffers(2, 1, &pGrassTessDataBuffer);
 		pDevContext->VSSetSamplers(0u, 1u, &simp);
 		
 		pDevContext->HSSetConstantBuffers(0, 1, &pRenderDataBuffer);
 		pDevContext->HSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+		pDevContext->HSSetConstantBuffers(2, 1, &pGrassTessDataBuffer);
 
 		pDevContext->DSSetConstantBuffers(0, 1, &pRenderDataBuffer);
 		pDevContext->DSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+		pDevContext->DSSetConstantBuffers(2, 1, &pGrassTessDataBuffer);
 
 		pDevContext->RSSetViewports(1u, &viewport);
 
 		pDevContext->PSSetConstantBuffers(0, 1, &pRenderDataBuffer);
 		pDevContext->PSSetConstantBuffers(1, 1, &pObjectDataBuffer);
+		pDevContext->PSSetConstantBuffers(2, 1, &pGrassTessDataBuffer);
 		pDevContext->PSSetSamplers(0u, 1u, &simp);
 
 		pDevContext->OMSetRenderTargets(1u, pRenderTarget->getRTV(), *pRenderTarget->getDSV());
@@ -202,6 +209,7 @@ namespace Okay
 
 		DX11_RELEASE(pRenderDataBuffer);
 		DX11_RELEASE(pObjectDataBuffer);
+		DX11_RELEASE(pGrassTessDataBuffer);
 		DX11_RELEASE(pGrassTransformSRV);
 		DX11_RELEASE(simp);
 		DX11_RELEASE(pPosUvNormIL);

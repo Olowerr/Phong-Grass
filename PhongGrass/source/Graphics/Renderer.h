@@ -32,6 +32,14 @@ namespace Okay
 		DirectX::XMFLOAT2 uvTiling;
 	};
 
+	struct GPUGrassData
+	{
+		float maxTessFactor;
+		float maxAppliedDistance;
+		float tessFactorExponent;
+		float pad0;
+	};
+
 	class Renderer
 	{
 	public:
@@ -52,6 +60,7 @@ namespace Okay
 		inline void setScene(Ref<Scene> pScene);
 		inline void setCustomCamera(Entity camera = Entity());
 
+		inline void setGrassTessData(const GPUGrassData& grassData);
 		inline void setGrassMeshId(uint32_t meshId);
 		void initGrass(const std::vector<DirectX::XMFLOAT4X4>& grassTransforms);
 
@@ -81,6 +90,7 @@ namespace Okay
 
 		ID3D11Buffer* pRenderDataBuffer = nullptr;
 		ID3D11Buffer* pObjectDataBuffer = nullptr;
+		ID3D11Buffer* pGrassTessDataBuffer = nullptr;
 
 		ID3D11ShaderResourceView* pGrassTransformSRV = nullptr;
 
@@ -111,6 +121,10 @@ namespace Okay
 		pScene = scene;
 	}
 
-	inline void Renderer::setCustomCamera(Entity camera)		{ customCamera = camera; }
-	inline void Okay::Renderer::setGrassMeshId(uint32_t meshId)	{ grassMeshId = meshId; }
+	inline void Renderer::setCustomCamera(Entity camera)				{ customCamera = camera; }
+	inline void Okay::Renderer::setGrassMeshId(uint32_t meshId)			{ grassMeshId = meshId; }
+	inline void Renderer::setGrassTessData(const GPUGrassData& grassData)
+	{
+		DX11::updateBuffer(pGrassTessDataBuffer, &grassData, sizeof(GPUGrassData));
+	}
 }

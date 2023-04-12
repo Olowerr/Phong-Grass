@@ -33,6 +33,14 @@ cbuffer objectData : register(b1)
     float2 uvTiling;
 };
 
+cbuffer grassData : register(b2)
+{
+    float maxGrassTessFactor;
+    float maxGrassAppliedDistance;
+    float tessGrassFactorExponent;
+    float pad2;
+}
+
 float2 calculateFinalUV(float2 inputUV)
 {
     return (inputUV + uvOffset) * uvTiling;

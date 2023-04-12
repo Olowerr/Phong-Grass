@@ -29,10 +29,11 @@ struct ApplicationData
 	std::vector<std::pair<uint32_t, std::string>> grassMeshes;
 	uint32_t currentSelected = 0u;
 
-	float grassDistRadius = 0.1f;
+	float grassDistRadius = 1.f;
 	std::array<float, 2> min{-20.f, -20.f}, max{20.f, 20.f};
 	uint32_t seed = 0u;
 	uint32_t numBlades = 0u;
+	GPUGrassData grassShaderData{};
 
 	ApplicationData() = default;
 	~ApplicationData() = default;
@@ -91,8 +92,14 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	app.grassMeshes.emplace_back(std::pair{ countB4,	 "grass1"});
 	app.grassMeshes.emplace_back(std::pair{ countB4 + 1, "grass2"});
 	app.grassMeshes.emplace_back(std::pair{ countB4 + 2, "grass3"});
+	app.currentSelected = 2u;
 	app.renderer.setGrassMeshId(countB4 + 2);
 	
+	app.grassShaderData.maxTessFactor = 5.f;
+	app.grassShaderData.maxAppliedDistance = 50.f;
+	app.grassShaderData.tessFactorExponent = 1.f;
+	app.renderer.setGrassTessData(app.grassShaderData);
+
 	std::vector<DX::XMFLOAT4X4> matrices;
 	generateGrassTransforms(matrices);
 	app.renderer.initGrass(matrices);
@@ -161,6 +168,24 @@ void runApplication()
 				generateGrassTransforms(matrices);
 				app.renderer.initGrass(matrices);
 			}
+
+			ImGui::Separator();
+			
+			
+			ImGui::Text("Max Tess:");
+			ImGui::SameLine();
+			if (ImGui::DragFloat("##maxTess", &app.grassShaderData.maxTessFactor, 0.01f, 0.f, 10.f))
+				app.renderer.setGrassTessData(app.grassShaderData);
+
+			ImGui::Text("Max Dist:");
+			ImGui::SameLine();
+			if (ImGui::DragFloat("##maxDist", &app.grassShaderData.maxAppliedDistance, 0.05f, 0.f, 100.f))
+				app.renderer.setGrassTessData(app.grassShaderData);
+			
+			ImGui::Text("Exponent:");
+			ImGui::SameLine();
+			if (ImGui::DragFloat("##expo", &app.grassShaderData.tessFactorExponent, 0.0025f, 0.1f, 10.f))
+				app.renderer.setGrassTessData(app.grassShaderData);
 
 
 			ImGui::PopItemWidth();
