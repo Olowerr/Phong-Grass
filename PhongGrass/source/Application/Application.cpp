@@ -24,23 +24,38 @@ struct ApplicationData
 	Window window;
 	Renderer renderer;
 	Ref<Scene> scene;
-
 	float cameraSpeed = 5.f;
-	std::vector<std::pair<uint32_t, std::string>> grassMeshes;
-	uint32_t currentSelected = 0u;
-
 	Entity floor;
-	float grassDistRadius = 0.6f;
+
+	// Grass global settings
 	std::array<float, 2> min{-20.f, -20.f}, max{20.f, 20.f};
 	uint32_t seed = 0u;
-	uint32_t numBlades = 0u;
+	uint32_t numBlades = 0u; // Doesn't control, only shows the value
+
+	// Current settings
+	float grassDistRadius = 0.6f;
 	GPUGrassData grassShaderData{};
+	int currentSelected[2]{ 0,0 };
+
+	// Options available
+	float bladesDistanceValues[3]{ 0.5f, 0.25f, 0.1f };
+	float grassExpoTestValues[3]{ 1.f, 1.f / 2.f, 2.f };
+
 
 	ApplicationData() = default;
 	~ApplicationData() = default;
 };
 
+struct Settings
+{
+	float bladeDist = 0u;
+	float tessExponent = 1.f;
+};
+
 static ApplicationData app;
+static Settings settings[3][3]{};
+
+
 namespace DX = DirectX;
 
 void updateCamera();
@@ -73,6 +88,29 @@ void generateGrassTransforms(std::vector<DX::XMFLOAT4X4>& result)
 	}
 }
 
+void applySettings()
+{
+	for (uint32_t g = 0; g < 3; g++)
+	{
+		for (uint32_t e = 0; e < 3; e++)
+		{
+			settings[g][e].bladeDist = app.bladesDistanceValues[g];
+			settings[g][e].tessExponent = app.grassExpoTestValues[e];
+		}
+	}
+
+	const Settings& newSettings = settings[app.currentSelected[0]][app.currentSelected[1]];
+
+	app.grassShaderData.tessFactorExponent = newSettings.tessExponent;
+	app.grassDistRadius = newSettings.bladeDist;
+
+	std::vector<DX::XMFLOAT4X4> matrices;
+	generateGrassTransforms(matrices);
+	app.renderer.initGrass(matrices);
+
+	app.renderer.setGrassTessData(app.grassShaderData);
+}
+
 void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 {
 	app.window.create(width, height, appName, RenderTexture::RENDER | RenderTexture::DEPTH | RenderTexture::SHADER_READ);
@@ -96,28 +134,24 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(2.f, 2.f, -5.f);
 	app.scene->setMainCamera(camera);
 
-
-	const uint32_t countB4 = content.getAmount<Mesh>();
-
-	content.importFile(RESOURCES_PATH "meshes/grass1.fbx");
-	content.importFile(RESOURCES_PATH "meshes/grass2.fbx");
 	content.importFile(RESOURCES_PATH "meshes/grass3.fbx");
+	app.renderer.setGrassMeshId(content.getAmount<Mesh>() - 1u);
 
-	app.grassMeshes.reserve(5);
-	app.grassMeshes.emplace_back(std::pair{ countB4,	 "grass1"});
-	app.grassMeshes.emplace_back(std::pair{ countB4 + 1, "grass2"});
-	app.grassMeshes.emplace_back(std::pair{ countB4 + 2, "grass3"});
-	app.currentSelected = 2u;
-	app.renderer.setGrassMeshId(countB4 + 2);
-	
+
+	app.grassShaderData.maxAppliedDistance = 20.f;
 	app.grassShaderData.maxTessFactor = 5.f;
-	app.grassShaderData.maxAppliedDistance = 50.f;
 	app.grassShaderData.tessFactorExponent = 1.f;
-	app.renderer.setGrassTessData(app.grassShaderData);
+	for (uint32_t g = 0; g < 3; g++)
+	{
+		for (uint32_t e = 0; e < 3; e++)
+		{
+			settings[g][e].bladeDist = app.bladesDistanceValues[g];
+			settings[g][e].tessExponent = app.grassExpoTestValues[e];
+		}
+	}
 
-	std::vector<DX::XMFLOAT4X4> matrices;
-	generateGrassTransforms(matrices);
-	app.renderer.initGrass(matrices);
+	app.currentSelected[0] = app.currentSelected[0] = 0;
+	applySettings();
 }
 
 void runApplication()
@@ -129,10 +163,13 @@ void runApplication()
 	{
 		Time::measure();
 		app.window.update();
+#ifndef DIST
 		imGuiNewFrame();
+#endif // DIST
 
+
+#ifndef DIST
 		updateCamera();
-
 		if (ImGui::Begin("Phong Grass"))
 		{
 			ImGui::PushItemWidth(-1.f);
@@ -145,26 +182,9 @@ void runApplication()
 			ImGui::SameLine();
 			ImGui::DragFloat("##CamSpeed", &app.cameraSpeed, 0.05f, 0.f, 10.f);
 			
-			ImGui::Separator();
-			if (ImGui::BeginCombo("##select", app.grassMeshes[app.currentSelected].second.c_str()))
-			{
-				for (uint32_t i = 0; i < (uint32_t)app.grassMeshes.size(); i++)
-				{
-					if (ImGui::Selectable(app.grassMeshes[i].second.c_str(), i == app.currentSelected))
-						app.renderer.setGrassMeshId(app.grassMeshes[app.currentSelected = i].first);
-				}
-
-				ImGui::EndCombo();
-			}
 
 			ImGui::Separator();
 
-			ImGui::Text("Num blades: %u", app.numBlades);
-
-			ImGui::Text("Radius:     ");
-			ImGui::SameLine();
-			ImGui::DragFloat("##radius", &app.grassDistRadius, 0.0001f, 0.f, 10.f, "%.4f");
-			
 			ImGui::Text("Min:        ");
 			ImGui::SameLine();
 			ImGui::DragFloat("##min", app.min.data(), 0.05f);
@@ -188,9 +208,9 @@ void runApplication()
 			}
 
 			ImGui::Separator();
-			Transform& tra = app.floor.getComponent<Transform>();
 
-			
+			ImGui::Text("Num blades: %u", app.numBlades);
+
 			ImGui::Text("Max Tess:");
 			ImGui::SameLine();
 			if (ImGui::DragFloat("##maxTess", &app.grassShaderData.maxTessFactor, 0.01f, 0.f, 10.f))
@@ -201,19 +221,37 @@ void runApplication()
 			if (ImGui::DragFloat("##maxDist", &app.grassShaderData.maxAppliedDistance, 0.05f, 0.f, 100.f))
 				app.renderer.setGrassTessData(app.grassShaderData);
 			
-			ImGui::Text("Exponent:");
-			ImGui::SameLine();
-			if (ImGui::DragFloat("##expo", &app.grassShaderData.tessFactorExponent, 0.0025f, 0.1f, 10.f))
-				app.renderer.setGrassTessData(app.grassShaderData);
+			ImGui::Separator();
 
+			ImGui::Text("DistValues:");
+			ImGui::SameLine();
+			ImGui::DragFloat3("##dists", app.bladesDistanceValues, 0.0001f, 0.f, 2.f, "%.4f");
+
+			ImGui::Text("Exponents:");
+			ImGui::SameLine();
+			ImGui::DragFloat3("##exps", app.grassExpoTestValues, 0.0001f, 0.f, 2.f, "%.4f");
+			
+			ImGui::Text("Settings:");
+			ImGui::SameLine();
+			ImGui::DragInt2("##sett", app.currentSelected, 0.05f, 0, 2);
+			//app.currentSelected[0] = std::clamp(app.currentSelected[0], 0, 2);
+			//app.currentSelected[1] = std::clamp(app.currentSelected[1], 0, 2);
+			
+			if (ImGui::Button("Update"))
+				applySettings();
+			
 
 			ImGui::PopItemWidth();
 		}
 		ImGui::End();
-
 		app.renderer.imGui();
+#endif
+
 		app.renderer.render();
+
+#ifndef DIST
 		imGuiRender();
+#endif // DIST
 
 		app.window.present();
 	}
