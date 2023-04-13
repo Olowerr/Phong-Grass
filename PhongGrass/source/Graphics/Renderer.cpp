@@ -315,6 +315,12 @@ namespace Okay
 		pDevContext->DSSetShader(nullptr, nullptr, 0u);
 		pDevContext->RSSetState(nullptr);
 		pDevContext->PSSetShader(pDefaultPS, nullptr, 0u);
+		pDevContext->OMSetRenderTargets(1, pRenderTarget->getRTV(), *pRenderTarget->getDSV());
+		
+		const DirectX::XMUINT2 dims = pRenderTarget->getDimensions();
+		viewport.Width = (float)dims.x;
+		viewport.Height = (float)dims.y;
+		pDevContext->RSSetViewports(1u, &viewport);
 
 		ContentBrowser& content = ContentBrowser::get();
 		entt::registry& reg = pScene->getRegistry();
