@@ -325,7 +325,7 @@ namespace Okay
 
 			transform.calculateMatrix();
 			worldMatrix = transform.matrix;
-			XMStoreFloat4x4(&objectData.worldMatrix, worldMatrix);
+			XMStoreFloat4x4(&objectData.worldMatrix, XMMatrixTranspose(worldMatrix));
 			objectData.uvOffset = matGPUData.uvOffset;
 			objectData.uvTiling = matGPUData.uvTiling;
 			DX11::updateBuffer(pObjectDataBuffer, &objectData, sizeof(GPUObjectData));
