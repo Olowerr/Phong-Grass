@@ -173,6 +173,8 @@ void runApplication()
 
 
 #ifdef DIST
+	app.window.setFullscreen(true);
+
 	static const float TEST_DURATION = 5.f; // Seconds
 	static const float DELAY_DURATION = 10.f; // Seconds
 	static const uint32_t NUM_TESTS = Settings::NUM_DIST_VALUES * Settings::NUM_EXPO_VALUES;
@@ -196,6 +198,11 @@ void runApplication()
 #ifndef DIST
 		imGuiNewFrame();
 #endif // DIST
+
+		static bool fullscreen = false;
+		if (Input::isKeyPressed(Key::F))
+			app.window.setFullscreen(fullscreen = !fullscreen);
+
 
 #ifdef DIST
 
@@ -324,6 +331,8 @@ void runApplication()
 
 		app.window.present();
 	}
+
+	app.window.setFullscreen(false);
 
 #ifdef DIST
 	for (uint32_t i = 0; i < NUM_TESTS; i++)

@@ -24,6 +24,7 @@ public:
 	inline const Okay::Ref<Okay::RenderTexture> getRenderTexture() const;
 	inline void clear();
 	inline void present();
+	void setFullscreen(bool fullscreen);
 
 	DirectX::XMUINT2 getDimensions() const;
 
@@ -47,6 +48,7 @@ private:
 	Okay::Ref<Okay::RenderTexture> renderTexture;
 
 	void getAndSetBackBuffer(uint32_t flags);
+	void resize(uint32_t width = 0u, uint32_t height = 0u);
 
 private: // Window handling through HWND
 	static std::unordered_map<HWND, Window*> windows;

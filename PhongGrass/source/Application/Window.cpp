@@ -5,7 +5,10 @@
 
 #include <windowsx.h>
 
+#ifndef DIST
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif // 
+
 
 std::unordered_map<HWND, Window*> Window::windows;
 
@@ -132,10 +135,31 @@ void Window::getAndSetBackBuffer(uint32_t flags)
 	DX11_RELEASE(backBuffer);
 }
 
+void Window::resize(uint32_t width, uint32_t height)
+{
+	// Release all external references to the backBuffer before resizing the buffer
+	const uint32_t flags = renderTexture->getFlags();
+	renderTexture->shutdown();
+
+	pSwapChain->ResizeBuffers(0u, width, height, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+	getAndSetBackBuffer(flags);
+}
+
+void Window::setFullscreen(bool fullscreen)
+{
+	RECT rect;
+	GetWindowRect(GetDesktopWindow(), &rect);
+	resize((uint32_t)rect.right, (uint32_t)rect.bottom);
+
+	pSwapChain->SetFullscreenState(fullscreen, nullptr);
+}
+
 LRESULT Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+#ifndef DIST
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
 		return true;
+#endif
 
 	switch (message)
 	{
@@ -203,13 +227,5 @@ void Window::onResize(HWND hWnd, WPARAM wParam)
 
 	auto it = windows.find(hWnd);
 	OKAY_ASSERT(it != windows.end(), "Resized invalid window (?)");
-
-	Window& window = *it->second;
-
-	// Release all external references to the backBuffer before resizing the buffer
-	const uint32_t flags = window.renderTexture->getFlags();
-	window.renderTexture->shutdown();
-
-	window.pSwapChain->ResizeBuffers(0u, 0u, 0u, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
-	window.getAndSetBackBuffer(flags);
+	it->second->resize();
 }
