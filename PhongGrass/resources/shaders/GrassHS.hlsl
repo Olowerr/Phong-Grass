@@ -8,9 +8,7 @@ struct HS_CONSTANT_DATA_OUTPUT
 
 #define NUM_CONTROL_POINTS 3
 
-HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
-	InputPatch<GrassVertex, NUM_CONTROL_POINTS> ip,
-	uint patchID : SV_PrimitiveID)
+HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<GrassVertex, NUM_CONTROL_POINTS> ip, uint patchID : SV_PrimitiveID)
 {
 	HS_CONSTANT_DATA_OUTPUT output;
     

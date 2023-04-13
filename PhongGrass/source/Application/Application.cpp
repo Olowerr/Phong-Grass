@@ -29,6 +29,7 @@ struct ApplicationData
 	std::vector<std::pair<uint32_t, std::string>> grassMeshes;
 	uint32_t currentSelected = 0u;
 
+	Entity floor;
 	float grassDistRadius = 0.6f;
 	std::array<float, 2> min{-20.f, -20.f}, max{20.f, 20.f};
 	uint32_t seed = 0u;
@@ -47,6 +48,16 @@ void imGuiStart();
 void imGuiNewFrame();
 void imGuiRender();
 void imGuiDestroy();
+
+void updateFloor()
+{
+	Transform& tra = app.floor.getComponent<Transform>();
+
+	const float xDiff = app.max[0] - app.min[0];
+	const float zDiff = app.max[1] - app.min[1];
+	tra.position = DX::XMFLOAT3(xDiff * 0.5f + app.min[0], 0.f, zDiff * 0.5f + app.min[1]);
+	tra.scale = DX::XMFLOAT3(xDiff, 1.f, zDiff);
+}
 
 void generateGrassTransforms(std::vector<DX::XMFLOAT4X4>& result)
 {
@@ -69,11 +80,16 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	app.renderer.create(app.window.getRenderTexture(), app.scene);
 
 	ContentBrowser& content = ContentBrowser::get();
-	content.importFile(RESOURCES_PATH "meshes/cube.fbx");
-	content.importFile(RESOURCES_PATH "meshes/DefaultTexture.png");
+	content.importFile(RESOURCES_PATH "textures/DefaultTexture.png");
+	content.importFile(RESOURCES_PATH "textures/groundTex.png");
+	content.importFile(RESOURCES_PATH "meshes/floor.fbx");
+	Material& floorMat = content.addAsset<Material>();
+	floorMat.setBaseColour(content.getAssetID<Texture>("groundTex"));
+	floorMat.setName("floorMat");
 
-	Entity entity = app.scene->createEntity();
-	entity.addComponent<MeshComponent>();
+	app.floor = app.scene->createEntity();
+	app.floor.addComponent<MeshComponent>(content.getAssetID<Mesh>("floor"), content.getAssetID<Material>("floorMat"));
+	updateFloor();
 
 	Entity camera = app.scene->createEntity();
 	camera.addComponent<Camera>();
@@ -168,10 +184,12 @@ void runApplication()
 				std::vector<DX::XMFLOAT4X4> matrices;
 				generateGrassTransforms(matrices);
 				app.renderer.initGrass(matrices);
+				updateFloor();
 			}
 
 			ImGui::Separator();
-			
+			Transform& tra = app.floor.getComponent<Transform>();
+
 			
 			ImGui::Text("Max Tess:");
 			ImGui::SameLine();
