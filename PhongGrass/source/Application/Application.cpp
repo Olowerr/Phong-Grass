@@ -28,7 +28,7 @@ struct ApplicationData
 	Entity floor;
 
 	// Grass global settings
-	std::array<float, 2> min{-20.f, -20.f}, max{20.f, 20.f};
+	std::array<float, 2> min{-40.f, -40.f}, max{40.f, 40.f};
 	uint32_t seed = 0u;
 	uint32_t numBlades = 0u; // Doesn't control, only shows the value
 
@@ -36,10 +36,6 @@ struct ApplicationData
 	float grassDistRadius = 0.6f;
 	GPUGrassData grassShaderData{};
 	int currentSelected[2]{ 0,0 };
-
-	// Options available
-	float bladesDistanceValues[3]{ 0.5f, 0.25f, 0.1f };
-	float grassExpoTestValues[3]{ 1.f, 1.f / 2.f, 2.f };
 
 
 	ApplicationData() = default;
@@ -50,10 +46,15 @@ struct Settings
 {
 	float bladeDist = 0u;
 	float tessExponent = 1.f;
+
+	static const int NUM_DIST_VALUES = 3;
+	static const int NUM_EXPO_VALUES = 3;
+	static inline float bladesDistanceValues[NUM_DIST_VALUES]{ 0.5f, 0.25f, 0.1f };
+	static inline float grassExpoTestValues[NUM_EXPO_VALUES]{ 1.f, 1.f / 5.f, 5.f };
 };
 
 static ApplicationData app;
-static Settings settings[3][3]{};
+static Settings settings[Settings::NUM_DIST_VALUES * Settings::NUM_EXPO_VALUES]{};
 
 
 namespace DX = DirectX;
@@ -90,16 +91,16 @@ void generateGrassTransforms(std::vector<DX::XMFLOAT4X4>& result)
 
 void applySettings()
 {
-	for (uint32_t g = 0; g < 3; g++)
+	for (uint32_t g = 0; g < Settings::NUM_DIST_VALUES; g++)
 	{
-		for (uint32_t e = 0; e < 3; e++)
+		for (uint32_t e = 0; e < Settings::NUM_EXPO_VALUES; e++)
 		{
-			settings[g][e].bladeDist = app.bladesDistanceValues[g];
-			settings[g][e].tessExponent = app.grassExpoTestValues[e];
+			settings[g * Settings::NUM_DIST_VALUES + e].bladeDist = Settings::bladesDistanceValues[g];
+			settings[g * Settings::NUM_DIST_VALUES + e].tessExponent = Settings::grassExpoTestValues[e];
 		}
 	}
 
-	const Settings& newSettings = settings[app.currentSelected[0]][app.currentSelected[1]];
+	const Settings& newSettings = settings[app.currentSelected[0] * Settings::NUM_DIST_VALUES + app.currentSelected[1]];
 
 	app.grassShaderData.tessFactorExponent = newSettings.tessExponent;
 	app.grassDistRadius = newSettings.bladeDist;
@@ -141,14 +142,6 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	app.grassShaderData.maxAppliedDistance = 20.f;
 	app.grassShaderData.maxTessFactor = 5.f;
 	app.grassShaderData.tessFactorExponent = 1.f;
-	for (uint32_t g = 0; g < 3; g++)
-	{
-		for (uint32_t e = 0; e < 3; e++)
-		{
-			settings[g][e].bladeDist = app.bladesDistanceValues[g];
-			settings[g][e].tessExponent = app.grassExpoTestValues[e];
-		}
-	}
 
 	app.currentSelected[0] = app.currentSelected[0] = 0;
 	applySettings();
@@ -225,11 +218,11 @@ void runApplication()
 
 			ImGui::Text("DistValues:");
 			ImGui::SameLine();
-			ImGui::DragFloat3("##dists", app.bladesDistanceValues, 0.0001f, 0.f, 2.f, "%.4f");
+			ImGui::DragFloat3("##dists", Settings::bladesDistanceValues, 0.0001f, 0.f, 4.f, "%.4f");
 
 			ImGui::Text("Exponents:");
 			ImGui::SameLine();
-			ImGui::DragFloat3("##exps", app.grassExpoTestValues, 0.0001f, 0.f, 2.f, "%.4f");
+			ImGui::DragFloat3("##exps", Settings::grassExpoTestValues, 0.0001f, 0.f, 10.f, "%.4f");
 			
 			ImGui::Text("Settings:");
 			ImGui::SameLine();
