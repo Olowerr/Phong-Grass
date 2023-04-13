@@ -50,7 +50,7 @@ struct Settings
 	static const int NUM_DIST_VALUES = 3;
 	static const int NUM_EXPO_VALUES = 3;
 	static inline float bladesDistanceValues[NUM_DIST_VALUES]{ 0.5f, 0.25f, 0.1f };
-	static inline float grassExpoTestValues[NUM_EXPO_VALUES]{ 1.f, 1.f / 5.f, 5.f };
+	static inline float grassExpoTestValues[NUM_EXPO_VALUES]{ 1.f, 1.f / 3.f, 3.f };
 };
 
 static ApplicationData app;
@@ -138,11 +138,11 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(2.f, 2.f, -5.f);
 	app.scene->setMainCamera(camera);
 
-	content.importFile(RESOURCES_PATH "meshes/grass3.fbx");
+	content.importFile(RESOURCES_PATH "meshes/phongGrass1.fbx");
 	app.renderer.setGrassMeshId(content.getAmount<Mesh>() - 1u);
 
 
-	app.grassShaderData.maxAppliedDistance = 20.f;
+	app.grassShaderData.maxAppliedDistance = 15.f;
 	app.grassShaderData.maxTessFactor = 5.f;
 	app.grassShaderData.tessFactorExponent = 1.f;
 
