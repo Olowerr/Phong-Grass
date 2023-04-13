@@ -3,7 +3,7 @@
 
 namespace Okay
 {
-	const uint32_t Mesh::Stride[] = { sizeof(DirectX::XMFLOAT3), sizeof(DirectX::XMFLOAT2), sizeof(DirectX::XMFLOAT3) };
+	const uint32_t Mesh::Stride[] = { sizeof(DirectX::XMFLOAT3), sizeof(DirectX::XMFLOAT3), sizeof(DirectX::XMFLOAT2) };
 	const uint32_t Mesh::Offset[] = { 0u, 0u, 0u };
 
 	Mesh::Mesh()
@@ -50,8 +50,8 @@ namespace Okay
 		dx11.createIndexBuffer(&indexBuffer, data.indices.data(), uint32_t(sizeof(uint32_t) * data.indices.size()));
 
 		dx11.createVertexBuffer(&vertexBuffers[0], data.positions.data(), uint32_t(sizeof(DirectX::XMFLOAT3) * data.positions.size()));
-		dx11.createVertexBuffer(&vertexBuffers[1], data.uvs.data(), uint32_t(sizeof(DirectX::XMFLOAT2) * data.uvs.size()));
-		dx11.createVertexBuffer(&vertexBuffers[2], data.normals.data(), uint32_t(sizeof(DirectX::XMFLOAT3) * data.normals.size()));
+		dx11.createVertexBuffer(&vertexBuffers[1], data.normals.data(), uint32_t(sizeof(DirectX::XMFLOAT3) * data.normals.size()));
+		dx11.createVertexBuffer(&vertexBuffers[2], data.uvs.data(), uint32_t(sizeof(DirectX::XMFLOAT2) * data.uvs.size()));
 
 		numIndices = ((uint32_t)data.indices.size());
 		name = data.name != "" ? data.name : "New Mesh";

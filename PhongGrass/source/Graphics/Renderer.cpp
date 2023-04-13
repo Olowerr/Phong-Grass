@@ -79,20 +79,27 @@ namespace Okay
 		{
 			D3D11_INPUT_ELEMENT_DESC inputLayoutDesc[3] = {
 				{"POSITION",	0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-				{"UV",			0, DXGI_FORMAT_R32G32_FLOAT,	1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-				{"NORMAL",		0, DXGI_FORMAT_R32G32B32_FLOAT, 2, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
+				{"NORMAL",		0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+				{"UV",			0, DXGI_FORMAT_R32G32_FLOAT,	2, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
 			};
 
 			std::string shaderData;
 
-			result = DX11::createShader(SHADER_PATH "MeshVS.hlsl", &pMeshVS, &shaderData);
-			OKAY_ASSERT(result, "Failed creating vertex shader");
+			{
+				result = DX11::createShader(SHADER_PATH "MeshVS.hlsl", &pMeshVS, &shaderData);
+				OKAY_ASSERT(result, "Failed creating vertex shader");
 
-			hr = pDevice->CreateInputLayout(inputLayoutDesc, 3u, shaderData.c_str(), shaderData.length(), &pPosUvNormIL);
-			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating input layout");
+				hr = pDevice->CreateInputLayout(inputLayoutDesc, 3u, shaderData.c_str(), shaderData.length(), &pPosNormUvIL);
+				OKAY_ASSERT(SUCCEEDED(hr), "Failed creating input layout");
+			}
 
-			result = DX11::createShader(SHADER_PATH "InstancedTessVS.hlsl", &pInstancedTessVS);
-			OKAY_ASSERT(result, "Failed creating instanced vertex shader");
+			{
+				result = DX11::createShader(SHADER_PATH "InstancedTessVS.hlsl", &pInstancedTessVS, &shaderData);
+				OKAY_ASSERT(result, "Failed creating instanced vertex shader");
+				
+				hr = pDevice->CreateInputLayout(inputLayoutDesc, 2u, shaderData.c_str(), shaderData.length(), &pPosNormIL);
+				OKAY_ASSERT(SUCCEEDED(hr), "Failed creating input layout");
+			}
 
 			result = DX11::createShader(SHADER_PATH "GrassHS.hlsl", &pGrassHS);
 			OKAY_ASSERT(result, "Failed creating grass hull shhader");
@@ -213,7 +220,8 @@ namespace Okay
 		DX11_RELEASE(pGrassTessDataBuffer);
 		DX11_RELEASE(pGrassTransformSRV);
 		DX11_RELEASE(simp);
-		DX11_RELEASE(pPosUvNormIL);
+		DX11_RELEASE(pPosNormUvIL);
+		DX11_RELEASE(pPosNormIL);
 		DX11_RELEASE(pMeshVS);
 		DX11_RELEASE(pInstancedTessVS);
 		DX11_RELEASE(pGrassHS);
@@ -301,7 +309,7 @@ namespace Okay
 
 		// Standard mesh pipeline
 		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		pDevContext->IASetInputLayout(pPosUvNormIL);
+		pDevContext->IASetInputLayout(pPosNormUvIL);
 		pDevContext->VSSetShader(pMeshVS, nullptr, 0u);
 		pDevContext->HSSetShader(nullptr, nullptr, 0u);
 		pDevContext->DSSetShader(nullptr, nullptr, 0u);
@@ -342,7 +350,8 @@ namespace Okay
 		const Mesh& grassMesh = content.getAsset<Mesh>(grassMeshId);
 
 		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-		pDevContext->IASetVertexBuffers(0u, Mesh::NumBuffers, grassMesh.getBuffers(), Mesh::Stride, Mesh::Offset);
+		pDevContext->IASetVertexBuffers(0u, 2u, grassMesh.getBuffers(), Mesh::Stride, Mesh::Offset);
+		pDevContext->IASetInputLayout(pPosNormIL);
 		pDevContext->IASetIndexBuffer(grassMesh.getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0u);
 		pDevContext->VSSetShader(pInstancedTessVS, nullptr, 0u);
 		pDevContext->HSSetShader(pGrassHS, nullptr, 0u);

@@ -1,15 +1,14 @@
 #include "ShaderInclude.hlsli"
 
-GrassVertex main(InputVertex vertexData, uint instanceID : SV_InstanceID)
+GrassVertex main(float3 position : POSITION, float3 normal : NORMAL, uint instanceID : SV_InstanceID)
 {
     GrassVertex output;
-    output.instanceID = instanceID;
     
-    float4x4 instanceWorldMatrix = instanceTransforms[instanceID];
-	
-    output.pos = mul(float4(vertexData.pos, 1.f), instanceWorldMatrix).xyz;
-    output.normal = normalize(mul(float4(vertexData.normal, 0.f), instanceWorldMatrix).xyz);
-    output.uv = vertexData.uv;
+    const float4x4 worldMatrix = instanceTransforms[instanceID];
+    
+    output.pos = mul(float4(position, 1.f), worldMatrix).xyz;
+    output.normal = mul(float4(normal, 0.f), worldMatrix).xyz;
+    output.instanceID = instanceID;
 
     return output;
 }

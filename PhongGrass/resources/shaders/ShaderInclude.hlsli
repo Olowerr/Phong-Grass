@@ -2,15 +2,15 @@
 struct InputVertex
 {
     float3 pos : POSITION;
-    float2 uv : UV;
     float3 normal : NORMAL;
+    float2 uv : UV;
 };
 
 struct TransformedVertex
 {
     float4 svPos : SV_POSITION;
-    float2 uv : UV;
     float3 normal : NORMAL;
+    float2 uv : UV;
 
     float3 worldPos : W_POS;
 };
@@ -18,8 +18,16 @@ struct TransformedVertex
 struct GrassVertex
 {
     float3 pos : POSITION;
-    float2 uv : UV;         // Temp (maybe)
-    float3 normal : NORMAL; // Temp (maybe)
+    float3 normal : NORMAL;
+    uint instanceID : INSTANCE_ID;
+};
+
+struct TransformedGrssVertex
+{
+    float4 svPos : SV_POSITION;
+    float3 pos : POSITION;
+    float3 normal : NORMAL;
+    
     uint instanceID : INSTANCE_ID;
 };
 

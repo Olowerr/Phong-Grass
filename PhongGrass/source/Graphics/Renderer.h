@@ -96,7 +96,8 @@ namespace Okay
 
 		ID3D11SamplerState* simp = nullptr;
 
-		ID3D11InputLayout* pPosUvNormIL = nullptr;
+		ID3D11InputLayout* pPosNormUvIL = nullptr;
+		ID3D11InputLayout* pPosNormIL = nullptr;
 
 		ID3D11VertexShader* pMeshVS = nullptr;
 		ID3D11VertexShader* pInstancedTessVS = nullptr;
