@@ -7,7 +7,7 @@ namespace Okay
 	const uint32_t Mesh::Offset[] = { 0u, 0u, 0u };
 
 	Mesh::Mesh()
-		:name(""), numIndices(0u), materialId(0u)
+		:name(""), numIndices(0u)
 	{
 		vertexBuffers[0] = nullptr;
 		vertexBuffers[1] = nullptr;
@@ -35,9 +35,6 @@ namespace Okay
 
 		numIndices = other.numIndices;
 		other.numIndices = 0u;
-
-		materialId = other.materialId;
-		other.materialId = 0u;
 	}
 
 	Mesh::~Mesh()
@@ -57,7 +54,6 @@ namespace Okay
 		dx11.createVertexBuffer(&vertexBuffers[2], data.normals.data(), uint32_t(sizeof(DirectX::XMFLOAT3) * data.normals.size()));
 
 		numIndices = ((uint32_t)data.indices.size());
-		materialId = data.materialId;
 		name = data.name != "" ? data.name : "New Mesh";
 	}
 

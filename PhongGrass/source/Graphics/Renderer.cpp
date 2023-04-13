@@ -318,7 +318,7 @@ namespace Okay
 			auto [transform, meshComp] = objGroup.get<Transform, MeshComponent>(entity);
 
 			const Mesh& mesh = content.getAsset<Mesh>(meshComp.meshIdx);
-			const Material& material = content.getAsset<Material>(mesh.getMaterialID());
+			const Material& material = content.getAsset<Material>(meshComp.materialIdx);
 			const Material::GPUData& matGPUData = material.getGPUData();
 			const Texture& diffuseTexture = content.getAsset<Texture>(material.getBaseColour());
 
