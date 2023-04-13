@@ -17,10 +17,8 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
     const float distance = length(instanceTransforms[ip[0].instanceID][3].xyz - camPos);
     const float tessellationFactor = pow(1.f - (distance / maxGrassAppliedDistance), tessGrassFactorExponent);
     
-    output.EdgeTessFactor[0] = max(tessellationFactor * maxGrassTessFactor, 1.f);
-	output.EdgeTessFactor[1] = max(tessellationFactor * maxGrassTessFactor, 1.f);
-	output.EdgeTessFactor[2] = max(tessellationFactor * maxGrassTessFactor, 1.f);
-    output.InsideTessFactor = max(tessellationFactor * maxGrassTessFactor, 1.f);
+    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = 
+        output.InsideTessFactor = max(tessellationFactor * maxGrassTessFactor, 1.f);
 
 	return output;
 }
