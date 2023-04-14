@@ -99,6 +99,9 @@ namespace Okay
 				
 				hr = pDevice->CreateInputLayout(inputLayoutDesc, 2u, shaderData.c_str(), shaderData.length(), &pPosNormIL);
 				OKAY_ASSERT(SUCCEEDED(hr), "Failed creating input layout");
+
+				result = DX11::createShader(SHADER_PATH "InstancedStaticVS.hlsl", &pInstancedStaticVS);
+				OKAY_ASSERT(result, "Failed creating instanced vertex shader");
 			}
 
 			result = DX11::createShader(SHADER_PATH "GrassHS.hlsl", &pGrassHS);
@@ -284,7 +287,7 @@ namespace Okay
 		ImGui::End();
 	}
 
-	void Renderer::render()
+	void Renderer::render(bool tessellateGrass = false)
 	{
 		Entity camEntity = pScene->getMainCamera();
 		OKAY_ASSERT(camEntity, "Invalid camera entity");
@@ -355,15 +358,26 @@ namespace Okay
 
 		const Mesh& grassMesh = content.getAsset<Mesh>(grassMeshId);
 
-		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 		pDevContext->IASetVertexBuffers(0u, 2u, grassMesh.getBuffers(), Mesh::Stride, Mesh::Offset);
 		pDevContext->IASetInputLayout(pPosNormIL);
 		pDevContext->IASetIndexBuffer(grassMesh.getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0u);
 		pDevContext->VSSetShader(pInstancedTessVS, nullptr, 0u);
-		pDevContext->HSSetShader(pGrassHS, nullptr, 0u);
-		pDevContext->DSSetShader(pGrassDS, nullptr, 0u);
 		pDevContext->RSSetState(wireFrameGrass ? pNoCullWireframeRS : pNoCullRS);
 		pDevContext->PSSetShader(pGrassPS, nullptr, 0u);
+		
+		if (tessellateGrass)
+		{
+			pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+			pDevContext->HSSetShader(pGrassHS, nullptr, 0u);
+			pDevContext->DSSetShader(pGrassDS, nullptr, 0u);
+		}
+		else
+		{
+
+			pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			pDevContext->HSSetShader(nullptr, nullptr, 0u);
+			pDevContext->DSSetShader(nullptr, nullptr, 0u);
+		}
 
 		pDevContext->DrawIndexedInstanced(grassMesh.getNumIndices(), numGrassBlades, 0u, 0, 0u);
 	}

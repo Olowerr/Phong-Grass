@@ -64,6 +64,7 @@ void imGuiStart();
 void imGuiNewFrame();
 void imGuiRender();
 void imGuiDestroy();
+void runStaticGrassTests(uint32_t meshId);
 
 void updateFloor()
 {
@@ -158,38 +159,15 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	applySettings();
 }
 
-// ADD AUTO TESTS FOR LOW QUALITY BLADE AND HIGH QUALITY BLADE
-// PROLLY JUST ADD A FUNCTION THAT TESTS THAT SPECIFICALLY
-
-// ADD AUTO TESTS FOR LOW QUALITY BLADE AND HIGH QUALITY BLADE
-// PROLLY JUST ADD A FUNCTION THAT TESTS THAT SPECIFICALLY
-
-// ADD AUTO TESTS FOR LOW QUALITY BLADE AND HIGH QUALITY BLADE
-// PROLLY JUST ADD A FUNCTION THAT TESTS THAT SPECIFICALLY
-
-// ADD AUTO TESTS FOR LOW QUALITY BLADE AND HIGH QUALITY BLADE
-// PROLLY JUST ADD A FUNCTION THAT TESTS THAT SPECIFICALLY
-
-// ADD AUTO TESTS FOR LOW QUALITY BLADE AND HIGH QUALITY BLADE
-// PROLLY JUST ADD A FUNCTION THAT TESTS THAT SPECIFICALLY
-
-// ADD AUTO TESTS FOR LOW QUALITY BLADE AND HIGH QUALITY BLADE
-// PROLLY JUST ADD A FUNCTION THAT TESTS THAT SPECIFICALLY
-
-// ADD AUTO TESTS FOR LOW QUALITY BLADE AND HIGH QUALITY BLADE
-// PROLLY JUST ADD A FUNCTION THAT TESTS THAT SPECIFICALLY
-
-// ADD AUTO TESTS FOR LOW QUALITY BLADE AND HIGH QUALITY BLADE
-// PROLLY JUST ADD A FUNCTION THAT TESTS THAT SPECIFICALLY
-
-// ADD AUTO TESTS FOR LOW QUALITY BLADE AND HIGH QUALITY BLADE
-// PROLLY JUST ADD A FUNCTION THAT TESTS THAT SPECIFICALLY
-
-void writeSettingsToFile(std::ofstream& writer, uint32_t settingsIdx)
+void writeSettingsToFile(std::ofstream& writer, uint32_t settingsIdx, bool writeExponent)
 {
-	writer << "Test: " << settingsIdx << " | Number of blades : " << app.numBlades << 
-		" | Dist: " << settings[settingsIdx].bladeDist << 
-		" | Exponent: " << settings[settingsIdx].tessExponent << "\n";
+	writer << "Test: " << settingsIdx << " | Number of blades : " << app.numBlades <<
+		" | Dist: " << settings[settingsIdx].bladeDist;
+
+	if (writeExponent)
+		writer << " | Exponent: " << settings[settingsIdx].tessExponent;
+
+	writer << "\n";
 }
 
 void runApplication()
@@ -212,9 +190,9 @@ void runApplication()
 	uint32_t numFrames = 0u;
 	
 	std::ofstream writer;
-	writer.open("results_0.txt", std::ofstream::trunc);
+	writer.open("Results/PhongGrass/results_0.txt", std::ofstream::trunc);
 
-	writeSettingsToFile(writer, currentTest);
+	writeSettingsToFile(writer, currentTest, true);
 #endif
 
 	Time::start();
@@ -257,9 +235,9 @@ void runApplication()
 					break;
 
 				writer.close();
-				writer.open("results_" + std::to_string(currentTest) + ".txt", std::ofstream::trunc);
+				writer.open("Results/PhongGrass/results_" + std::to_string(currentTest) + ".txt", std::ofstream::trunc);
 
-				writeSettingsToFile(writer, currentTest);
+				writeSettingsToFile(writer, currentTest, true);
 				applySettings(currentTest);
 
 				Time::start();
@@ -362,8 +340,7 @@ void runApplication()
 	app.window.setFullscreen(false);
 
 #ifdef DIST
-	for (uint32_t i = 0; i < NUM_TESTS; i++)
-		writer.close();
+	writer.close();
 #endif
 }
 
@@ -376,6 +353,82 @@ void destroyApplication()
 #ifndef DIST
 	imGuiDestroy();
 #endif
+}
+
+void runStaticGrassTests(uint32_t meshId, const std::string& resultNamePrefix)
+{
+	app.window.setFullscreen(true);
+
+	static const float TEST_DURATION = 5.f; // Seconds
+	static const float DELAY_DURATION = 10.f; // Seconds
+	static const uint32_t NUM_TESTS = 3u;
+	float timer = 0.f;
+	bool delay = true;
+
+	uint32_t currentTest = 0u;
+	uint32_t numFrames = 0u;
+
+	std::ofstream writer;
+	writer.open("Results/StaticGrass/" + resultNamePrefix + "_results_0.txt", std::ofstream::trunc);
+
+	writeSettingsToFile(writer, currentTest, false);
+
+	Time::start();
+	while (app.window.isOpen())
+	{
+		Time::measure();
+		app.window.update();
+
+		static bool fullscreen = false;
+		if (Input::isKeyPressed(Key::F))
+			app.window.setFullscreen(fullscreen = !fullscreen);
+
+		const float dt = Time::getApplicationDT();
+		timer += dt;
+		if (delay)
+		{
+			if (timer > DELAY_DURATION)
+			{
+				timer = 0.f;
+				delay = false;
+			}
+		}
+		else
+		{
+			numFrames++;
+			if (timer > TEST_DURATION)
+			{
+				writer << "Avg: " << (timer * 1000.f) / (float)numFrames << " | NumFrames: " << numFrames << " | Test Duration: " << TEST_DURATION << "\n";
+				timer = 0.f;
+				numFrames = 0u;
+				delay = true;
+
+				if (++currentTest >= NUM_TESTS)
+					break;
+
+				writer.close();
+				writer.open("Results/StaticGrass/" + resultNamePrefix + "_results_" + std::to_string(currentTest) + ".txt", std::ofstream::trunc);
+
+				writeSettingsToFile(writer, currentTest, false);
+				
+				app.grassDistRadius = settings[currentTest].bladeDist;
+
+
+				Time::start();
+			}
+			else if (numFrames > 1u)
+			{
+				writer << dt * 1000.f << "\n";
+			}
+		}
+
+		app.renderer.render();
+
+		app.window.present();
+	}
+
+	app.window.setFullscreen(false);
+	writer.close();
 }
 
 void updateCamera()

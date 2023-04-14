@@ -64,7 +64,7 @@ namespace Okay
 		inline void setGrassMeshId(uint32_t meshId);
 		void initGrass(const std::vector<DirectX::XMFLOAT4X4>& grassTransforms);
 
-		void render();
+		void render(bool tessellateGrass = false);
 
 		void imGui();
 
@@ -101,6 +101,7 @@ namespace Okay
 
 		ID3D11VertexShader* pMeshVS = nullptr;
 		ID3D11VertexShader* pInstancedTessVS = nullptr;
+		ID3D11VertexShader* pInstancedStaticVS = nullptr;
 
 		ID3D11HullShader* pGrassHS = nullptr;
 		ID3D11DomainShader* pGrassDS = nullptr;
