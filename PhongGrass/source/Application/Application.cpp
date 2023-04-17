@@ -27,6 +27,7 @@ struct ApplicationData
 	float cameraSpeed = 5.f;
 	Entity floor;
 	uint32_t phongGrassMeshId;
+	uint32_t phongGrassMesh1Id;
 	uint32_t lowGrassMeshId;
 	uint32_t highGrassMeshId;
 
@@ -144,13 +145,15 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 	const uint32_t amountPreImport = content.getAmount<Mesh>();
 
+	content.importFile(RESOURCES_PATH "meshes/phongGrass.fbx");
 	content.importFile(RESOURCES_PATH "meshes/phongGrass1.fbx");
 	content.importFile(RESOURCES_PATH "meshes/lowGrass.fbx");
 	content.importFile(RESOURCES_PATH "meshes/highGrass.fbx");
 
 	app.phongGrassMeshId = amountPreImport;
-	app.lowGrassMeshId = amountPreImport + 1u;
-	app.highGrassMeshId = amountPreImport + 2u;
+	app.phongGrassMesh1Id = amountPreImport + 1u;
+	app.lowGrassMeshId = amountPreImport + 2u;
+	app.highGrassMeshId = amountPreImport + 3u;
 
 	app.renderer.setGrassMeshId(app.phongGrassMeshId);
 
@@ -188,6 +191,8 @@ void runEditorApplication()
 {
 	imGuiStart();
 
+	bool phongTess = true;
+	int meshId = (int)app.phongGrassMeshId;
 	int currSettings2D[2]{};
 	applySettings(0u);
 	app.renderer.setGrassMeshId(app.phongGrassMeshId);
@@ -275,6 +280,15 @@ void runEditorApplication()
 				applySettings(currSettings2D[0] * Settings::NUM_DIST_VALUES + currSettings2D[1]);
 			}
 			
+			ImGui::Separator();
+			ImGui::Checkbox("Phong", &phongTess);
+			ImGui::RadioButton("Phong Blade", &meshId, (int)app.phongGrassMeshId);
+			ImGui::RadioButton("Phong Blade1", &meshId, (int)app.phongGrassMesh1Id);
+			ImGui::RadioButton("Low Blade", &meshId, (int)app.lowGrassMeshId);
+			ImGui::RadioButton("High Blade", &meshId, (int)app.highGrassMeshId);
+
+			app.renderer.setGrassMeshId(meshId);
+
 			ImGui::PopItemWidth();
 		}
 		ImGui::End();
@@ -282,7 +296,10 @@ void runEditorApplication()
 
 		app.renderer.prepareRender();
 		app.renderer.renderObjects();
-		app.renderer.renderPhongGrass();
+		if (phongTess)
+			app.renderer.renderPhongGrass();
+		else
+			app.renderer.renderStaticGrass();
 
 		imGuiRender();
 
