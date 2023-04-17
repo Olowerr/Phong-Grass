@@ -64,7 +64,10 @@ namespace Okay
 		inline void setGrassMeshId(uint32_t meshId);
 		void initGrass(const std::vector<DirectX::XMFLOAT4X4>& grassTransforms);
 
-		void render(bool tessellateGrass = false);
+		void prepareRender();
+		void renderObjects();
+		void renderStaticGrass();
+		void renderPhongGrass();
 
 		void imGui();
 
@@ -84,6 +87,7 @@ namespace Okay
 		uint32_t grassMeshId = Okay::INVALID_UINT;
 		bool wireFrameGrass = false;
 		uint32_t numGrassBlades = 0u;
+		void bindGrassLayout();
 
 	private: // Buffers and stuff
 		ID3D11DeviceContext* pDevContext;

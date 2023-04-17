@@ -378,6 +378,11 @@ SET ERRORLEVEL=0</Command>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\InstancedStaticVS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

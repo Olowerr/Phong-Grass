@@ -194,5 +194,6 @@
     <None Include="resources\shaders\InstancedTessVS.hlsl" />
     <None Include="resources\shaders\MeshVS.hlsl" />
     <None Include="resources\shaders\ShaderInclude.hlsli" />
+    <None Include="resources\shaders\InstancedStaticVS.hlsl" />
   </ItemGroup>
 </Project>

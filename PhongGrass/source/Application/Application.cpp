@@ -247,8 +247,9 @@ void runApplication()
 				writer << dt * 1000.f << "\n";
 			}
 		}
-		
 
+		app.renderer.prepareRender();
+		app.renderer.renderPhongGrass();
 #else
 		updateCamera();
 		if (ImGui::Begin("Phong Grass"))
@@ -326,9 +327,12 @@ void runApplication()
 		}
 		ImGui::End();
 		app.renderer.imGui();
+
+		app.renderer.prepareRender();
+		app.renderer.renderObjects();
+		app.renderer.renderPhongGrass();
 #endif
 
-		app.renderer.render();
 
 #ifndef DIST
 		imGuiRender();
@@ -422,7 +426,8 @@ void runStaticGrassTests(uint32_t meshId, const std::string& resultNamePrefix)
 			}
 		}
 
-		app.renderer.render();
+		app.renderer.prepareRender();
+		app.renderer.renderStaticGrass();
 
 		app.window.present();
 	}

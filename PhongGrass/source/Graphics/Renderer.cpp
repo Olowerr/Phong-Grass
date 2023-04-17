@@ -227,6 +227,7 @@ namespace Okay
 		DX11_RELEASE(pPosNormIL);
 		DX11_RELEASE(pMeshVS);
 		DX11_RELEASE(pInstancedTessVS);
+		DX11_RELEASE(pInstancedStaticVS);
 		DX11_RELEASE(pGrassHS);
 		DX11_RELEASE(pGrassDS);
 		DX11_RELEASE(pNoCullRS);
@@ -287,7 +288,7 @@ namespace Okay
 		ImGui::End();
 	}
 
-	void Renderer::render(bool tessellateGrass = false)
+	void Renderer::prepareRender()
 	{
 		Entity camEntity = pScene->getMainCamera();
 		OKAY_ASSERT(camEntity, "Invalid camera entity");
@@ -300,17 +301,28 @@ namespace Okay
 		using namespace DirectX;
 
 		XMMATRIX viewProj = XMMatrixLookToLH(XMLoadFloat3(&camTransform.position), camTransform.forwardXM(), camTransform.upXM()) *
-		camera.calculateProjMatrix(viewport.Width, viewport.Height);
+			camera.calculateProjMatrix(viewport.Width, viewport.Height);
 
 		DirectX::XMStoreFloat4x4(&renderData.viewProjMatrix, DirectX::XMMatrixTranspose(viewProj));
 		renderData.camPos = camTransform.position;
 		renderData.camDir = camTransform.forward();
-		
+
 		DX11::updateBuffer(pRenderDataBuffer, &renderData, sizeof(GPURenderData));
 
 		pRenderTarget->clear();
 
-		// Standard mesh pipeline
+		const DirectX::XMUINT2 dims = pRenderTarget->getDimensions();
+		viewport.Width = (float)dims.x;
+		viewport.Height = (float)dims.y;
+
+		pDevContext->RSSetViewports(1u, &viewport);
+		pDevContext->OMSetRenderTargets(1, pRenderTarget->getRTV(), *pRenderTarget->getDSV());
+	}
+
+	void Renderer::renderObjects()
+	{
+		using namespace DirectX;
+
 		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		pDevContext->IASetInputLayout(pPosNormUvIL);
 		pDevContext->VSSetShader(pMeshVS, nullptr, 0u);
@@ -318,12 +330,6 @@ namespace Okay
 		pDevContext->DSSetShader(nullptr, nullptr, 0u);
 		pDevContext->RSSetState(nullptr);
 		pDevContext->PSSetShader(pDefaultPS, nullptr, 0u);
-		pDevContext->OMSetRenderTargets(1, pRenderTarget->getRTV(), *pRenderTarget->getDSV());
-		
-		const DirectX::XMUINT2 dims = pRenderTarget->getDimensions();
-		viewport.Width = (float)dims.x;
-		viewport.Height = (float)dims.y;
-		pDevContext->RSSetViewports(1u, &viewport);
 
 		ContentBrowser& content = ContentBrowser::get();
 		entt::registry& reg = pScene->getRegistry();
@@ -355,8 +361,11 @@ namespace Okay
 
 			pDevContext->DrawIndexed(mesh.getNumIndices(), 0u, 0);
 		}
+	}
 
-		const Mesh& grassMesh = content.getAsset<Mesh>(grassMeshId);
+	void Renderer::bindGrassLayout()
+	{
+		const Mesh& grassMesh = ContentBrowser::get().getAsset<Mesh>(grassMeshId);
 
 		pDevContext->IASetVertexBuffers(0u, 2u, grassMesh.getBuffers(), Mesh::Stride, Mesh::Offset);
 		pDevContext->IASetInputLayout(pPosNormIL);
@@ -364,21 +373,27 @@ namespace Okay
 		pDevContext->VSSetShader(pInstancedTessVS, nullptr, 0u);
 		pDevContext->RSSetState(wireFrameGrass ? pNoCullWireframeRS : pNoCullRS);
 		pDevContext->PSSetShader(pGrassPS, nullptr, 0u);
-		
-		if (tessellateGrass)
-		{
-			pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-			pDevContext->HSSetShader(pGrassHS, nullptr, 0u);
-			pDevContext->DSSetShader(pGrassDS, nullptr, 0u);
-		}
-		else
-		{
+	}
 
-			pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			pDevContext->HSSetShader(nullptr, nullptr, 0u);
-			pDevContext->DSSetShader(nullptr, nullptr, 0u);
-		}
+	void Renderer::renderStaticGrass()
+	{
+		bindGrassLayout();
+		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		pDevContext->HSSetShader(nullptr, nullptr, 0u);
+		pDevContext->DSSetShader(nullptr, nullptr, 0u);
 
+		const Mesh& grassMesh = ContentBrowser::get().getAsset<Mesh>(grassMeshId);
+		pDevContext->DrawIndexedInstanced(grassMesh.getNumIndices(), numGrassBlades, 0u, 0, 0u);
+	}
+
+	void Renderer::renderPhongGrass()
+	{
+		bindGrassLayout();
+		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		pDevContext->HSSetShader(pGrassHS, nullptr, 0u);
+		pDevContext->DSSetShader(pGrassDS, nullptr, 0u);
+
+		const Mesh& grassMesh = ContentBrowser::get().getAsset<Mesh>(grassMeshId);
 		pDevContext->DrawIndexedInstanced(grassMesh.getNumIndices(), numGrassBlades, 0u, 0, 0u);
 	}
 
