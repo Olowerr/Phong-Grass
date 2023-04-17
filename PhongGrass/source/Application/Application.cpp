@@ -26,6 +26,9 @@ struct ApplicationData
 	Ref<Scene> scene;
 	float cameraSpeed = 5.f;
 	Entity floor;
+	uint32_t phongGrassMeshId;
+	uint32_t lowGrassMeshId;
+	uint32_t highGrassMeshId;
 
 	// Grass global settings
 	std::array<float, 2> min{-40.f, -40.f}, max{40.f, 40.f};
@@ -64,7 +67,7 @@ void imGuiStart();
 void imGuiNewFrame();
 void imGuiRender();
 void imGuiDestroy();
-void runStaticGrassTests(uint32_t meshId);
+void runStaticGrassTests(uint32_t meshId, const std::string& resultNamePrefix);
 
 void updateFloor()
 {
@@ -139,8 +142,17 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(2.f, 2.f, -5.f);
 	app.scene->setMainCamera(camera);
 
+	const uint32_t amountPreImport = content.getAmount<Mesh>();
+
 	content.importFile(RESOURCES_PATH "meshes/phongGrass1.fbx");
-	app.renderer.setGrassMeshId(content.getAmount<Mesh>() - 1u);
+	content.importFile(RESOURCES_PATH "meshes/lowGrass.fbx");
+	content.importFile(RESOURCES_PATH "meshes/highGrass.fbx");
+
+	app.phongGrassMeshId = amountPreImport;
+	app.lowGrassMeshId = amountPreImport + 1u;
+	app.highGrassMeshId = amountPreImport + 2u;
+
+	app.renderer.setGrassMeshId(app.phongGrassMeshId);
 
 
 	app.grassShaderData.maxAppliedDistance = 15.f;
@@ -161,7 +173,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 void writeSettingsToFile(std::ofstream& writer, uint32_t settingsIdx, bool writeExponent)
 {
-	writer << "Test: " << settingsIdx << " | Number of blades : " << app.numBlades <<
+	writer << "SettingID: " << settingsIdx << " | Number of blades : " << app.numBlades <<
 		" | Dist: " << settings[settingsIdx].bladeDist;
 
 	if (writeExponent)
@@ -180,8 +192,8 @@ void runApplication()
 #ifdef DIST
 	app.window.setFullscreen(true);
 
-	static const float TEST_DURATION = 5.f; // Seconds
-	static const float DELAY_DURATION = 10.f; // Seconds
+	static const float TEST_DURATION = 2.f; // Seconds
+	static const float DELAY_DURATION = 2.f; // Seconds
 	static const uint32_t NUM_TESTS = Settings::NUM_DIST_VALUES * Settings::NUM_EXPO_VALUES;
 	float timer = 0.f;
 	bool delay = true;
@@ -237,8 +249,8 @@ void runApplication()
 				writer.close();
 				writer.open("Results/PhongGrass/results_" + std::to_string(currentTest) + ".txt", std::ofstream::trunc);
 
-				writeSettingsToFile(writer, currentTest, true);
 				applySettings(currentTest);
+				writeSettingsToFile(writer, currentTest, true);
 
 				Time::start();
 			}
@@ -341,11 +353,12 @@ void runApplication()
 		app.window.present();
 	}
 
-	app.window.setFullscreen(false);
-
 #ifdef DIST
 	writer.close();
+	runStaticGrassTests(app.lowGrassMeshId, "lowQualityGrass");
+	runStaticGrassTests(app.highGrassMeshId, "highQualityGrass");
 #endif
+	app.window.setFullscreen(false);
 }
 
 void destroyApplication()
@@ -361,11 +374,12 @@ void destroyApplication()
 
 void runStaticGrassTests(uint32_t meshId, const std::string& resultNamePrefix)
 {
-	app.window.setFullscreen(true);
-
-	static const float TEST_DURATION = 5.f; // Seconds
-	static const float DELAY_DURATION = 10.f; // Seconds
+	static const float TEST_DURATION = 2.f; // Seconds
+	static const float DELAY_DURATION = 2.f; // Seconds
 	static const uint32_t NUM_TESTS = 3u;
+	static bool fullscreen;
+	fullscreen = true;
+
 	float timer = 0.f;
 	bool delay = true;
 
@@ -375,7 +389,14 @@ void runStaticGrassTests(uint32_t meshId, const std::string& resultNamePrefix)
 	std::ofstream writer;
 	writer.open("Results/StaticGrass/" + resultNamePrefix + "_results_0.txt", std::ofstream::trunc);
 
+	app.grassDistRadius = settings[currentTest * 3u].bladeDist;
+	std::vector<DX::XMFLOAT4X4> matrices;
+	generateGrassTransforms(matrices);
+	app.renderer.initGrass(matrices);
+
+	app.renderer.setGrassMeshId(meshId);
 	writeSettingsToFile(writer, currentTest, false);
+
 
 	Time::start();
 	while (app.window.isOpen())
@@ -383,7 +404,6 @@ void runStaticGrassTests(uint32_t meshId, const std::string& resultNamePrefix)
 		Time::measure();
 		app.window.update();
 
-		static bool fullscreen = false;
 		if (Input::isKeyPressed(Key::F))
 			app.window.setFullscreen(fullscreen = !fullscreen);
 
@@ -413,11 +433,13 @@ void runStaticGrassTests(uint32_t meshId, const std::string& resultNamePrefix)
 				writer.close();
 				writer.open("Results/StaticGrass/" + resultNamePrefix + "_results_" + std::to_string(currentTest) + ".txt", std::ofstream::trunc);
 
-				writeSettingsToFile(writer, currentTest, false);
 				
-				app.grassDistRadius = settings[currentTest].bladeDist;
+				app.grassDistRadius = settings[currentTest * 3u].bladeDist;
+				std::vector<DX::XMFLOAT4X4> matrices;
+				generateGrassTransforms(matrices);
+				app.renderer.initGrass(matrices);
 
-
+				writeSettingsToFile(writer, currentTest * 3u, false);
 				Time::start();
 			}
 			else if (numFrames > 1u)
@@ -432,7 +454,6 @@ void runStaticGrassTests(uint32_t meshId, const std::string& resultNamePrefix)
 		app.window.present();
 	}
 
-	app.window.setFullscreen(false);
 	writer.close();
 }
 

@@ -370,7 +370,6 @@ namespace Okay
 		pDevContext->IASetVertexBuffers(0u, 2u, grassMesh.getBuffers(), Mesh::Stride, Mesh::Offset);
 		pDevContext->IASetInputLayout(pPosNormIL);
 		pDevContext->IASetIndexBuffer(grassMesh.getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0u);
-		pDevContext->VSSetShader(pInstancedTessVS, nullptr, 0u);
 		pDevContext->RSSetState(wireFrameGrass ? pNoCullWireframeRS : pNoCullRS);
 		pDevContext->PSSetShader(pGrassPS, nullptr, 0u);
 	}
@@ -379,6 +378,7 @@ namespace Okay
 	{
 		bindGrassLayout();
 		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		pDevContext->VSSetShader(pInstancedStaticVS, nullptr, 0u);
 		pDevContext->HSSetShader(nullptr, nullptr, 0u);
 		pDevContext->DSSetShader(nullptr, nullptr, 0u);
 
@@ -390,6 +390,7 @@ namespace Okay
 	{
 		bindGrassLayout();
 		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		pDevContext->VSSetShader(pInstancedTessVS, nullptr, 0u);
 		pDevContext->HSSetShader(pGrassHS, nullptr, 0u);
 		pDevContext->DSSetShader(pGrassDS, nullptr, 0u);
 
