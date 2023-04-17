@@ -3,8 +3,14 @@
 int main()
 {
 	startApplication(L"Phong Grass");
-	runApplication();
+	
+#ifdef DIST
+	runPerformanceTests();
+#else
+	runEditorApplication();
+#endif // DIST
 	destroyApplication();
+
 
 	return 0;
 }
