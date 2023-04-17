@@ -18,8 +18,8 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<GrassVertex, NUM_CONTROL
     //const float clampedMaxFactor = tessellationFactor * maxGrassTessFactor;
     //const float clampedMaxFactor = 0.1f;
     
-    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = clampedMaxFactor * 2.5f;
-    output.InsideTessFactor = clampedMaxFactor;
+    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = 
+        output.InsideTessFactor = clampedMaxFactor;
 
         //output.InsideTessFactor = tessellationFactor * maxGrassTessFactor;
 	return output;
