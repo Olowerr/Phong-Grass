@@ -219,13 +219,13 @@ private:
 	std::string includeBuffer;
 };
 
-template bool DX11::createShader(std::string_view path, ID3D11VertexShader** ppShader, std::string* pOutShaderData);
-template bool DX11::createShader(std::string_view path, ID3D11HullShader** ppShader, std::string* pOutShaderData);
-template bool DX11::createShader(std::string_view path, ID3D11DomainShader** ppShader, std::string* pOutShaderData);
-template bool DX11::createShader(std::string_view path, ID3D11PixelShader** ppShader, std::string* pOutShaderData);
+template bool DX11::createShader(std::string_view, ID3D11VertexShader**, std::string*, const D3D_SHADER_MACRO* );
+template bool DX11::createShader(std::string_view, ID3D11HullShader**, std::string*, const D3D_SHADER_MACRO* );
+template bool DX11::createShader(std::string_view, ID3D11DomainShader**, std::string*, const D3D_SHADER_MACRO* );
+template bool DX11::createShader(std::string_view, ID3D11PixelShader**, std::string*, const D3D_SHADER_MACRO* );
 
 template<typename ShaderType>
-bool DX11::createShader(std::string_view path, ShaderType** ppShader, std::string* pOutShaderData)
+bool DX11::createShader(std::string_view path, ShaderType** ppShader, std::string* pOutShaderData, const D3D_SHADER_MACRO* pDefines)
 {
 	if (!ppShader)
 		return false;
@@ -278,7 +278,7 @@ bool DX11::createShader(std::string_view path, ShaderType** ppShader, std::strin
 		else if constexpr (std::is_same<ShaderType, ID3D11PixelShader>())	shaderTypeTarget = "ps_5_0";
 
 		IncludeReader includer;
-		HRESULT hr = D3DCompileFromFile(lpPath, nullptr, &includer, "main", shaderTypeTarget, optimizationLevel, 0u, &shaderData, &compileErrors);
+		HRESULT hr = D3DCompileFromFile(lpPath, pDefines, &includer, "main", shaderTypeTarget, optimizationLevel, 0u, &shaderData, &compileErrors);
 		OKAY_DELETE_ARRAY(lpPath);
 
 		if (FAILED(hr))

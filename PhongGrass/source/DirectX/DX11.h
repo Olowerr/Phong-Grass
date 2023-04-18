@@ -1,5 +1,6 @@
 #pragma once
 #include <d3d11.h>
+#include <d3dcompiler.h>
 
 #include "Okay/Okay.h"
 
@@ -38,7 +39,7 @@ public:
 	static HRESULT createStructuredSRV(ID3D11ShaderResourceView** ppSRV, ID3D11Buffer* pBuffer, UINT numElements);
 
 	template<typename ShaderType>
-	static bool createShader(std::string_view path, ShaderType** ppShader, std::string* pOutShaderData = nullptr);
+	static bool createShader(std::string_view path, ShaderType** ppShader, std::string* pOutShaderData = nullptr, const D3D_SHADER_MACRO* pDefines = nullptr);
 
 private:
 	ID3D11Device* pDevice;
