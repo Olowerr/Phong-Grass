@@ -12,16 +12,15 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<GrassVertex, NUM_CONTROL
 {
 	HS_CONSTANT_DATA_OUTPUT output;
     
-    const float distance = length(instanceTransforms[ip[0].instanceID][3].xyz - float3(camPos.x, 0.f, camPos.z));
+    const float3 camToGrass = instanceTransforms[ip[0].instanceID][3].xyz - float3(camPos.x, 0.f, camPos.z);
+    const float distance = length(camToGrass);
+
     const float tessellationFactor = pow(1.f - (distance / maxGrassAppliedDistance), tessGrassFactorExponent);
     const float clampedMaxFactor = max(tessellationFactor * maxGrassTessFactor, 1.f);
-    //const float clampedMaxFactor = tessellationFactor * maxGrassTessFactor;
-    //const float clampedMaxFactor = 0.1f;
-    
-    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = 
+        
+    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] =
         output.InsideTessFactor = clampedMaxFactor;
 
-        //output.InsideTessFactor = tessellationFactor * maxGrassTessFactor;
 	return output;
 }
 

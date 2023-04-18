@@ -7,7 +7,7 @@ static const float4 COLOURS[3] =
     float4(143.f, 255.f, 0.f, 0.f) / 255.f
 };
 
-static const float GRASS_HEIGHT = 0.736f;
+static const float GRASS_HEIGHT = 0.736f * 3.f;
 static const float MODIFIER = 1.25f;
 
 float4 main(TransformedGrssVertex input) : SV_TARGET
