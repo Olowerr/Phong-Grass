@@ -59,7 +59,7 @@ struct Settings
 	static const int NUM_DIST_VALUES = 3;
 	static const int NUM_EXPO_VALUES = 3;
 	static inline float bladesDistanceValues[NUM_DIST_VALUES]{ 0.5f, 0.2f, 0.1f };
-	static inline float grassExpoTestValues[NUM_EXPO_VALUES]{ 1.f, 3.f, 3.f };
+	static inline float grassExpoTestValues[NUM_EXPO_VALUES]{ 1.f, 4.f, 4.f };
 };
 
 static ApplicationData app;
@@ -190,7 +190,12 @@ void writeSettingsToFile(std::ofstream& writer, uint32_t settingsIdx, bool write
 		" | Dist: " << settings[settingsIdx].bladeDist;
 
 	if (writeExponent)
-		writer << " | Exponent: " << settings[settingsIdx].tessExponent;
+	{
+		uint32_t mode = app.grassShaderData.mode;
+		const std::string modeStr = (mode == LINEAR ? "Linear" : (mode == EXPONENTIAL_HOLD ? "Exponential_Hold" : (mode == EXPONENTIAL_DROP ? "Exponential_Drop" : "Unknown")));
+
+		writer << " | Mode: " << modeStr << " | Exponent: " << settings[settingsIdx].tessExponent;
+	}
 
 	writer << "\n";
 }
@@ -391,8 +396,8 @@ void runEditorApplication()
 
 void runGrassTests(uint32_t meshId, const std::string& resultNamePrefix, bool phongGrass)
 {
-	static const float TEST_DURATION = 2.f; // Seconds
-	static const float DELAY_DURATION = 6.f; // Seconds
+	static const float TEST_DURATION = 1.f; // Seconds
+	static const float DELAY_DURATION = 1.f; // Seconds
 	static bool fullscreen = true;
 
 	float timer = 0.f;
@@ -445,12 +450,13 @@ void runGrassTests(uint32_t meshId, const std::string& resultNamePrefix, bool ph
 				writer.close();
 				writer.open(fileLocation + "_results_" + std::to_string(currentTest / (phongGrass ? 1u : 3u)) + ".txt", std::ofstream::trunc);
 				
+				app.grassShaderData.mode = static_cast<GRASS_HULL_SHADER_MODE>(currentTest % 3u);
 				applySettings(currentTest);
 				writeSettingsToFile(writer, currentTest, phongGrass);
 
 				Time::start();
 			}
-			else if (numFrames > 1u)
+			else
 			{
 				writer << dt * 1000.f << "\n";
 			}
