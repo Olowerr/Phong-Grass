@@ -175,6 +175,16 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	DX11::getDeviceContext()->DSSetConstantBuffers(5u, 1u, &app.shapeFactorBuffer);
 }
 
+/*
+	SCREENSHOTS OF ALL BLADES FROM DIFFERENT DISTANCES (LIKE IN A LINE)???
+	SCREENSHOTS OF ALL BLADES FROM DIFFERENT DISTANCES (LIKE IN A LINE)???
+	SCREENSHOTS OF ALL BLADES FROM DIFFERENT DISTANCES (LIKE IN A LINE)???
+	SCREENSHOTS OF ALL BLADES FROM DIFFERENT DISTANCES (LIKE IN A LINE)???
+	SCREENSHOTS OF ALL BLADES FROM DIFFERENT DISTANCES (LIKE IN A LINE)???
+	SCREENSHOTS OF ALL BLADES FROM DIFFERENT DISTANCES (LIKE IN A LINE)???
+	SCREENSHOTS OF ALL BLADES FROM DIFFERENT DISTANCES (LIKE IN A LINE)???
+*/
+
 void writeSettingsToFile(std::ofstream& writer, uint32_t settingsIdx, bool writeExponent)
 {
 	writer << "SettingID: " << settingsIdx << " | Number of blades : " << app.numBlades <<
@@ -485,7 +495,7 @@ void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileN
 	for (uint32_t i = 3u; i < width * height * 4u; i += 4u)
 		((unsigned char*)sub.pData)[i] = UCHAR_MAX;
 	
-	stbi_write_png(("Results/PhongGrass/images/" + fileName + ".png").c_str(), width, height, 4, sub.pData, sub.RowPitch);
+	stbi_write_png(("Results/images/" + fileName + ".png").c_str(), width, height, 4, sub.pData, sub.RowPitch);
 
 	pDevCon->Unmap(stagingResultCopy, 0u);
 
