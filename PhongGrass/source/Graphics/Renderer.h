@@ -32,12 +32,19 @@ namespace Okay
 		DirectX::XMFLOAT2 uvTiling;
 	};
 
+	enum GRASS_HULL_SHADER_MODE : uint32_t
+	{
+		LINEAR = 0u,
+		EXPONENTIAL_HOLD = 1u,
+		EXPONENTIAL_DROP = 2u
+	};
+
 	struct GPUGrassData
 	{
 		float maxTessFactor;
 		float maxAppliedDistance;
 		float tessFactorExponent;
-		float pad0;
+		GRASS_HULL_SHADER_MODE mode = GRASS_HULL_SHADER_MODE::LINEAR;
 	};
 
 	class Renderer
@@ -88,6 +95,7 @@ namespace Okay
 		bool wireFrameGrass = false;
 		uint32_t numGrassBlades = 0u;
 		void bindGrassLayout();
+		ID3D11HullShader* pGrassUsedHS = nullptr;
 
 	private: // Buffers and stuff
 		ID3D11DeviceContext* pDevContext;
@@ -107,7 +115,7 @@ namespace Okay
 		ID3D11VertexShader* pInstancedTessVS = nullptr;
 		ID3D11VertexShader* pInstancedStaticVS = nullptr;
 
-		ID3D11HullShader* pGrassHS = nullptr;
+		ID3D11HullShader* pGrassHS[3]{};
 		ID3D11DomainShader* pGrassDS = nullptr;
 
 		ID3D11RasterizerState* pNoCullRS = nullptr;
@@ -128,9 +136,13 @@ namespace Okay
 	}
 
 	inline void Renderer::setCustomCamera(Entity camera)				{ customCamera = camera; }
-	inline void Okay::Renderer::setGrassMeshId(uint32_t meshId)			{ grassMeshId = meshId; }
+	inline void Renderer::setGrassMeshId(uint32_t meshId)			{ grassMeshId = meshId; }
 	inline void Renderer::setGrassTessData(const GPUGrassData& grassData)
 	{
+		DX11_RELEASE(pGrassUsedHS);
+		pGrassUsedHS = pGrassHS[grassData.mode];
+		pGrassUsedHS->AddRef();
+
 		DX11::updateBuffer(pGrassTessDataBuffer, &grassData, sizeof(GPUGrassData));
 	}
 }

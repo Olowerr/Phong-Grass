@@ -104,8 +104,24 @@ namespace Okay
 				OKAY_ASSERT(result, "Failed creating instanced vertex shader");
 			}
 
-			result = DX11::createShader(SHADER_PATH "GrassHS.hlsl", &pGrassHS);
-			OKAY_ASSERT(result, "Failed creating grass hull shhader");
+			{
+				D3D_SHADER_MACRO defines[] =
+				{
+					{"MODE", ""},
+					{NULL, NULL},
+				};
+				const char* modeValues[3] = { "0", "1", "2" };
+
+				for (size_t i = 0; i < 3; i++)
+				{
+					defines[0].Definition = modeValues[i];
+					result = DX11::createShader(SHADER_PATH "GrassHS.hlsl", &pGrassHS[i], nullptr, defines);
+					OKAY_ASSERT(result, "Failed creating grass hull shhader");
+				}
+
+				pGrassUsedHS = pGrassHS[0];
+				pGrassUsedHS->AddRef();
+			}
 
 			result = DX11::createShader(SHADER_PATH "GrassDS.hlsl", &pGrassDS);
 			OKAY_ASSERT(result, "Failed creating grass domain shhader");
@@ -228,7 +244,10 @@ namespace Okay
 		DX11_RELEASE(pMeshVS);
 		DX11_RELEASE(pInstancedTessVS);
 		DX11_RELEASE(pInstancedStaticVS);
-		DX11_RELEASE(pGrassHS);
+		DX11_RELEASE(pGrassHS[0]);
+		DX11_RELEASE(pGrassHS[1]);
+		DX11_RELEASE(pGrassHS[2]);
+		DX11_RELEASE(pGrassUsedHS);
 		DX11_RELEASE(pGrassDS);
 		DX11_RELEASE(pNoCullRS);
 		DX11_RELEASE(pNoCullWireframeRS);
@@ -279,9 +298,45 @@ namespace Okay
 		ImGui::Text("Grass shaders");
 		imGuiUpdateShader(&pInstancedTessVS, SHADER_PATH "InstancedTessVS.hlsl", "InstancedTessVS");
 		imGuiUpdateShader(&pInstancedStaticVS, SHADER_PATH "InstancedStaticVS.hlsl", "InstancedStaticVS");
-		imGuiUpdateShader(&pGrassHS, SHADER_PATH "GrassHS.hlsl", "GrassHS");
+		{
+			bool allGood = ImGui::Button("GrassHS");
+
+			ID3D11HullShader* newShaders[3]{};
+			D3D_SHADER_MACRO defines[] =
+			{
+				{"MODE", ""},
+				{NULL, NULL},
+			};
+			const char* modeValues[3] = { "0", "1", "2" };
+
+			for (size_t i = 0; i < 3 && allGood; i++)
+			{
+				defines[0].Definition = modeValues[i];
+				bool result = DX11::createShader(SHADER_PATH "GrassHS.hlsl", &newShaders[i], nullptr, defines);
+				if (!result)
+					allGood = false;
+			}
+
+			if (!allGood)
+			{
+				for (uint32_t i = 0; i < 3; i++)
+					DX11_RELEASE(newShaders[i]);
+			}
+			else
+			{
+				for (uint32_t i = 0; i < 3; i++)
+				{
+					DX11_RELEASE(pGrassHS[i]);
+					pGrassHS[i] = newShaders[i];
+				}
+				pGrassUsedHS = pGrassHS[0];
+				pGrassUsedHS->AddRef();
+			}
+		}
 		imGuiUpdateShader(&pGrassDS, SHADER_PATH "GrassDS.hlsl", "GrassDS");
 		imGuiUpdateShader(&pGrassPS, SHADER_PATH "GrassPS.hlsl", "GrassPS");
+
+		
 
 		ImGui::Separator();
 		ImGui::Checkbox("Wireframe grass", &wireFrameGrass);
@@ -392,7 +447,7 @@ namespace Okay
 		bindGrassLayout();
 		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 		pDevContext->VSSetShader(pInstancedTessVS, nullptr, 0u);
-		pDevContext->HSSetShader(pGrassHS, nullptr, 0u);
+		pDevContext->HSSetShader(pGrassUsedHS, nullptr, 0u);
 		pDevContext->DSSetShader(pGrassDS, nullptr, 0u);
 
 		const Mesh& grassMesh = ContentBrowser::get().getAsset<Mesh>(grassMeshId);

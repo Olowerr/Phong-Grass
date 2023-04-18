@@ -59,7 +59,7 @@ struct Settings
 	static const int NUM_DIST_VALUES = 3;
 	static const int NUM_EXPO_VALUES = 3;
 	static inline float bladesDistanceValues[NUM_DIST_VALUES]{ 0.5f, 0.2f, 0.1f };
-	static inline float grassExpoTestValues[NUM_EXPO_VALUES]{ 1.f, 1.f / 3.f, 3.f };
+	static inline float grassExpoTestValues[NUM_EXPO_VALUES]{ 1.f, 3.f, 3.f };
 };
 
 static ApplicationData app;
@@ -175,7 +175,8 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 	app.grassShaderData.maxAppliedDistance = 15.f;
 	app.grassShaderData.maxTessFactor = 5.f;
-	app.grassShaderData.tessFactorExponent = 1.f;
+	app.grassShaderData.tessFactorExponent = Settings::grassExpoTestValues[0];
+	app.grassShaderData.mode = GRASS_HULL_SHADER_MODE::LINEAR;
 
 	updateSettingsArray();
 
@@ -228,7 +229,7 @@ void runEditorApplication()
 
 	bool phongTess = true;
 	int meshId = (int)app.phongGrassMeshId;
-	int currSettings2D[2]{};
+	int currSettings2D[2]{0, (int)app.grassShaderData.mode };
 	applySettings(0u);
 	app.renderer.setGrassMeshId(app.phongGrassMeshId);
 
@@ -309,9 +310,13 @@ void runEditorApplication()
 			ImGui::SameLine();
 			ImGui::DragInt2("##sett", currSettings2D, 0.05f, 0, 2);
 			
+			app.grassShaderData.mode = static_cast<GRASS_HULL_SHADER_MODE>(currSettings2D[1]);
+			app.grassShaderData.tessFactorExponent = settings[currSettings2D[0] * Settings::NUM_DIST_VALUES + currSettings2D[1]].tessExponent;
+			app.renderer.setGrassTessData(app.grassShaderData);
+			updateSettingsArray();
+
 			if (ImGui::Button("Update"))
 			{
-				updateSettingsArray();
 				applySettings(currSettings2D[0] * Settings::NUM_DIST_VALUES + currSettings2D[1]);
 			}
 			
@@ -346,12 +351,12 @@ void runEditorApplication()
 			if (ImGui::InputInt("Img Width", (int*)&dims[0], 1))
 			{
 				if (lockAspectRatio)
-					dims[1] = dims[0] / (16.f / 9.f);
+					dims[1] = uint32_t(dims[0] / (16.f / 9.f));
 			}
 			if (ImGui::InputInt("Img Height", (int*)&dims[1], 1))
 			{
 				if (lockAspectRatio)
-					dims[0] = dims[1] * (16.f / 9.f);
+					dims[0] = uint32_t(dims[1] * (16.f / 9.f));
 			}
 			ImGui::Checkbox("16:9", &lockAspectRatio);
 
@@ -468,6 +473,7 @@ void destroyApplication()
 	app.window.shutdown();
 	app.renderer.shutdown();
 	app.scene = nullptr;
+	DX11_RELEASE(app.shapeFactorBuffer);
 }
 
 void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool renderObjects)

@@ -15,8 +15,18 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<GrassVertex, NUM_CONTROL
     const float3 camToGrass = instanceTransforms[ip[0].instanceID][3].xyz - float3(camPos.x, 0.f, camPos.z);
     const float distance = length(camToGrass);
 
-    const float tessellationFactor = pow(1.f - (distance / maxGrassAppliedDistance), tessGrassFactorExponent);
-    const float clampedMaxFactor = max(tessellationFactor * maxGrassTessFactor, 1.f);
+#if MODE == 0
+    const float tessellationFactor = (1.f - distance / maxGrassAppliedDistance) * maxGrassTessFactor;
+    const float clampedMaxFactor = max(tessellationFactor, 1.f);
+#elif MODE == 1
+    const float tessellationFactor = maxGrassTessFactor + pow(distance / maxGrassAppliedDistance, tessGrassFactorExponent) * -maxGrassTessFactor;
+    const float clampedMaxFactor = max(tessellationFactor, 1.f);
+#elif MODE == 2
+    const float tessellationFactor = pow(1.f - distance / maxGrassAppliedDistance, tessGrassFactorExponent) * maxGrassTessFactor;
+    const float clampedMaxFactor = max(tessellationFactor, 1.f);
+#else
+    const float clampedMaxFactor = 0.f;
+#endif
         
     output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] =
         output.InsideTessFactor = clampedMaxFactor;
