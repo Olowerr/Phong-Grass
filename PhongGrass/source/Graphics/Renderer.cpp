@@ -278,6 +278,7 @@ namespace Okay
 		ImGui::Separator();
 		ImGui::Text("Grass shaders");
 		imGuiUpdateShader(&pInstancedTessVS, SHADER_PATH "InstancedTessVS.hlsl", "InstancedTessVS");
+		imGuiUpdateShader(&pInstancedStaticVS, SHADER_PATH "InstancedStaticVS.hlsl", "InstancedStaticVS");
 		imGuiUpdateShader(&pGrassHS, SHADER_PATH "GrassHS.hlsl", "GrassHS");
 		imGuiUpdateShader(&pGrassDS, SHADER_PATH "GrassDS.hlsl", "GrassDS");
 		imGuiUpdateShader(&pGrassPS, SHADER_PATH "GrassPS.hlsl", "GrassPS");

@@ -46,6 +46,9 @@ struct ApplicationData
 
 	ApplicationData() = default;
 	~ApplicationData() = default;
+
+	ID3D11Buffer* shapeFactorBuffer = nullptr;
+	float shapeFactor = 0.75f;
 };
 
 struct Settings
@@ -175,6 +178,9 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	app.grassShaderData.tessFactorExponent = 1.f;
 
 	updateSettingsArray();
+
+	DX11::createConstantBuffer(&app.shapeFactorBuffer, &app.shapeFactor, 16u, false);
+	DX11::getDeviceContext()->DSSetConstantBuffers(5u, 1u, &app.shapeFactorBuffer);
 }
 
 void writeSettingsToFile(std::ofstream& writer, uint32_t settingsIdx, bool writeExponent)
@@ -311,6 +317,7 @@ void runEditorApplication()
 			
 			ImGui::Separator();
 			ImGui::Checkbox("Phong", &phongTess);
+			ImGui::DragFloat("ShapeFactor", &app.shapeFactor, 0.005f);
 			ImGui::RadioButton("Phong Blade", &meshId, (int)app.phongGrassMeshId);
 			ImGui::RadioButton("Phong Blade1", &meshId, (int)app.phongGrassMesh1Id);
 			ImGui::RadioButton("Phong Blade2", &meshId, (int)app.phongGrassMesh2Id);
@@ -319,6 +326,7 @@ void runEditorApplication()
 			ImGui::RadioButton("High Blade", &meshId, (int)app.highGrassMeshId);
 
 			app.renderer.setGrassMeshId(meshId);
+			DX11::updateBuffer(app.shapeFactorBuffer, &app.shapeFactor, 4u);
 
 			ImGui::PopItemWidth();
 		}

@@ -13,8 +13,11 @@ float3 orthogonalProjection(float3 position, float3 planePos, float3 planeNormal
     return position - dot(position - planePos, planeNormal) * planeNormal;
 }
 
-// 1/2 for phongGrass | 1 for phongGrass1
-static const float shapeFactor = 0.75f;
+cbuffer shapeBuffer : register(b5)
+{
+    float shapeFactor;
+    float pad4[3];
+}
 
 [domain("tri")]
 TransformedGrssVertex main(HS_CONSTANT_DATA_OUTPUT input, float3 domain : SV_DomainLocation, const OutputPatch<GrassVertex, NUM_CONTROL_POINTS> patch)
