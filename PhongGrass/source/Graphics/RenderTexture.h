@@ -57,6 +57,7 @@ namespace Okay
 		inline uint32_t getFlags() const;
 		inline bool valid() const;
 
+		inline ID3D11Texture2D* getBuffer() const;
 		inline ID3D11RenderTargetView* const* getRTV() const;
 		inline ID3D11ShaderResourceView* const* getSRV() const;
 		inline ID3D11UnorderedAccessView* const* getUAV() const;
@@ -104,6 +105,7 @@ namespace Okay
 	inline uint32_t RenderTexture::getFlags() const { return flags; }
 	inline bool RenderTexture::valid() const		{ return buffer; }
 
+	inline ID3D11Texture2D* RenderTexture::getBuffer() const				{ return buffer; }
 	inline ID3D11RenderTargetView* const* RenderTexture::getRTV() const		{ return &rtv; }
 	inline ID3D11ShaderResourceView* const* RenderTexture::getSRV() const	{ return &srv; }
 	inline ID3D11UnorderedAccessView* const* RenderTexture::getUAV() const	{ return &uav; }

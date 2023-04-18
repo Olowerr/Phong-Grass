@@ -17,6 +17,8 @@
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
 
+#include "Graphics/Assets/ImpExp/stb_image_write.h"
+
 using namespace Okay;
 
 struct ApplicationData
@@ -41,7 +43,6 @@ struct ApplicationData
 	// Current settings
 	float grassDistRadius = 0.6f;
 	GPUGrassData grassShaderData{};
-
 
 	ApplicationData() = default;
 	~ApplicationData() = default;
@@ -71,6 +72,7 @@ void imGuiNewFrame();
 void imGuiRender();
 void imGuiDestroy();
 void runGrassTests(uint32_t meshId, const std::string& resultNamePrefix, bool phongGrass);
+void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool renderObjects);
 
 void updateFloor()
 {
@@ -321,6 +323,41 @@ void runEditorApplication()
 			ImGui::PopItemWidth();
 		}
 		ImGui::End();
+
+		if (ImGui::Begin("Screenshot"))
+		{
+			ImGui::PushItemWidth(-1.f);
+
+			static bool renderObjects = false;
+			static bool lockAspectRatio = true;
+			static uint32_t dims[2] = { 1920u, 1080u };
+
+			ImGui::Checkbox("Objects", &renderObjects);
+			ImGui::Separator();
+
+			if (ImGui::InputInt("Img Width", (int*)&dims[0], 1))
+			{
+				if (lockAspectRatio)
+					dims[1] = dims[0] / (16.f / 9.f);
+			}
+			if (ImGui::InputInt("Img Height", (int*)&dims[1], 1))
+			{
+				if (lockAspectRatio)
+					dims[0] = dims[1] * (16.f / 9.f);
+			}
+			ImGui::Checkbox("16:9", &lockAspectRatio);
+
+			ImGui::Separator();
+			if (ImGui::Button("Save"))
+			{
+				const std::string name(std::move(std::to_string(currSettings2D[0] * Settings::NUM_DIST_VALUES + currSettings2D[1])));
+				saveRenderedImage(dims[0], dims[1], name, renderObjects);
+			}
+
+			ImGui::PopItemWidth();
+		}
+		ImGui::End();
+
 		app.renderer.imGui();
 
 		app.renderer.prepareRender();
@@ -423,6 +460,45 @@ void destroyApplication()
 	app.window.shutdown();
 	app.renderer.shutdown();
 	app.scene = nullptr;
+}
+
+void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool renderObjects)
+{
+	Ref<RenderTexture> renderTarget = createRef<RenderTexture>(width, height, RenderTexture::RENDER | RenderTexture::DEPTH);
+	app.renderer.setRenderTexture(renderTarget);
+
+	app.renderer.prepareRender();
+	app.renderer.renderPhongGrass();
+	if (renderObjects) 
+		app.renderer.renderObjects();
+
+	app.renderer.setRenderTexture(app.window.getRenderTexture());
+
+	ID3D11Texture2D* stagingResultCopy = nullptr;
+	D3D11_TEXTURE2D_DESC texDesc{};
+	renderTarget->getBuffer()->GetDesc(&texDesc);
+	texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	texDesc.Usage = D3D11_USAGE_STAGING;
+	texDesc.BindFlags = 0u;
+	DX11::getDevice()->CreateTexture2D(&texDesc, nullptr, &stagingResultCopy);
+	if (!stagingResultCopy)
+		return;
+
+	ID3D11DeviceContext* pDevCon = DX11::getDeviceContext();
+	pDevCon->CopyResource(stagingResultCopy, renderTarget->getBuffer());
+
+	D3D11_MAPPED_SUBRESOURCE sub{};
+	pDevCon->Map(stagingResultCopy, 0u, D3D11_MAP_READ, 0u, &sub);
+	
+	// Force alpha to 255
+	for (uint32_t i = 3u; i < width * height * 4u; i += 4u)
+		((unsigned char*)sub.pData)[i] = UCHAR_MAX;
+	
+	stbi_write_png(("Results/PhongGrass/images/" + fileName + ".png").c_str(), width, height, 4, sub.pData, sub.RowPitch);
+
+	pDevCon->Unmap(stagingResultCopy, 0u);
+
+	DX11_RELEASE(stagingResultCopy);
 }
 
 void updateCamera()

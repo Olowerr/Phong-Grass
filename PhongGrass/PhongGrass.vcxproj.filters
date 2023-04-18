@@ -185,6 +185,9 @@
     <ClInclude Include="source\Application\StaticGrass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\Graphics\Assets\ImpExp\stb_image_write.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\DefaultPS.hlsl" />
