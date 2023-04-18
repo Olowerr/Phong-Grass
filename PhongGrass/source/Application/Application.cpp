@@ -29,9 +29,6 @@ struct ApplicationData
 	float cameraSpeed = 5.f;
 	Entity floor;
 	uint32_t phongGrassMeshId;
-	uint32_t phongGrassMesh1Id;
-	uint32_t phongGrassMesh2Id;
-	uint32_t phongGrassMesh22Id;
 	uint32_t lowGrassMeshId;
 	uint32_t highGrassMeshId;
 
@@ -48,7 +45,7 @@ struct ApplicationData
 	~ApplicationData() = default;
 
 	ID3D11Buffer* shapeFactorBuffer = nullptr;
-	float shapeFactor = 0.75f;
+	float shapeFactor = 0.565f;
 };
 
 struct Settings
@@ -157,18 +154,12 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	const uint32_t amountPreImport = content.getAmount<Mesh>();
 
 	content.importFile(RESOURCES_PATH "meshes/phongGrass.fbx");
-	content.importFile(RESOURCES_PATH "meshes/phongGrass1.fbx");
-	content.importFile(RESOURCES_PATH "meshes/phongGrass2.fbx");
-	content.importFile(RESOURCES_PATH "meshes/phongGrass22.fbx");
 	content.importFile(RESOURCES_PATH "meshes/lowGrass.fbx");
 	content.importFile(RESOURCES_PATH "meshes/highGrass.fbx");
 
 	app.phongGrassMeshId = amountPreImport;
-	app.phongGrassMesh1Id = amountPreImport + 1u;
-	app.phongGrassMesh2Id = amountPreImport + 2u;
-	app.phongGrassMesh22Id = amountPreImport + 3u;
-	app.lowGrassMeshId = amountPreImport + 4u;
-	app.highGrassMeshId = amountPreImport + 5u;
+	app.lowGrassMeshId = amountPreImport + 1u;
+	app.highGrassMeshId = amountPreImport + 2u;
 
 	app.renderer.setGrassMeshId(app.phongGrassMeshId);
 
@@ -210,23 +201,6 @@ void runPerformanceTests()
 
 	app.window.setFullscreen(false);
 }
-
-/*
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-	SWITCH TO PhongGrass1 ENTIRELY, FIX lowGrass/highGrass
-*/
 
 void runEditorApplication()
 {
@@ -329,9 +303,6 @@ void runEditorApplication()
 			ImGui::Checkbox("Phong", &phongTess);
 			ImGui::DragFloat("ShapeFactor", &app.shapeFactor, 0.005f);
 			ImGui::RadioButton("Phong Blade", &meshId, (int)app.phongGrassMeshId);
-			ImGui::RadioButton("Phong Blade1", &meshId, (int)app.phongGrassMesh1Id);
-			ImGui::RadioButton("Phong Blade2", &meshId, (int)app.phongGrassMesh2Id);
-			ImGui::RadioButton("Phong Blade22", &meshId, (int)app.phongGrassMesh22Id);
 			ImGui::RadioButton("Low Blade", &meshId, (int)app.lowGrassMeshId);
 			ImGui::RadioButton("High Blade", &meshId, (int)app.highGrassMeshId);
 
