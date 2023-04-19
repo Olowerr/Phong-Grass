@@ -291,6 +291,7 @@ namespace Okay
 		DX11_RELEASE(pDefaultPS);
 		DX11_RELEASE(pGrassPS);
 		DX11_RELEASE(pSkyBoxPS);
+		DX11_RELEASE(pLessEqualDSS);
 		viewport = D3D11_VIEWPORT();
 	}
 

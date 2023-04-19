@@ -55,7 +55,7 @@ struct Settings
 
 	static const int NUM_DIST_VALUES = 3;
 	static const int NUM_EXPO_VALUES = 3;
-	static inline float bladesDistanceValues[NUM_DIST_VALUES]{ 0.5f, 0.2f, 0.1f };
+	static inline float bladesDistanceValues[NUM_DIST_VALUES]{ 0.5f, 0.25f, 0.1f };
 	static inline float grassExpoTestValues[NUM_EXPO_VALUES]{ 1.f, 4.f, 4.f };
 };
 
