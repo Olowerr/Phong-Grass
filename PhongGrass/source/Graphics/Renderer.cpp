@@ -370,6 +370,7 @@ namespace Okay
 					DX11_RELEASE(pGrassHS[i]);
 					pGrassHS[i] = newShaders[i];
 				}
+				DX11_RELEASE(pGrassUsedHS);
 				pGrassUsedHS = pGrassHS[0];
 				pGrassUsedHS->AddRef();
 			}
