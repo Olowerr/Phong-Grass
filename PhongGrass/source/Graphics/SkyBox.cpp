@@ -118,8 +118,6 @@ namespace Okay
 
 		OKAY_ASSERT(SUCCEEDED(hr), "Failed creating Texture Cube SRV");
 
-		DX11::get().getDeviceContext()->PSSetShaderResources(10, 1, &pTextureCubeSRV);
-
 		return true;
 	}
 }

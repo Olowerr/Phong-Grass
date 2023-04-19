@@ -72,7 +72,7 @@ void imGuiNewFrame();
 void imGuiRender();
 void imGuiDestroy();
 void runGrassTests(uint32_t meshId, const std::string& resultNamePrefix, bool phongGrass);
-void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool renderObjects);
+void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool renderObjects, bool renderSky);
 
 void updateFloor()
 {
@@ -214,6 +214,10 @@ void runPerformanceTests()
 
 void runEditorApplication()
 {
+	Ref<SkyBox> pSkyBox = createRef<SkyBox>();
+	pSkyBox->create(RESOURCES_PATH "textures/skyBox.png");
+	app.renderer.setSkybox(pSkyBox);
+
 	imGuiStart();
 
 	bool phongTess = true;
@@ -328,10 +332,12 @@ void runEditorApplication()
 			ImGui::PushItemWidth(-1.f);
 
 			static bool renderObjects = false;
+			static bool renderSky = false;
 			static bool lockAspectRatio = true;
 			static uint32_t dims[2] = { 1920u, 1080u };
 
 			ImGui::Checkbox("Objects", &renderObjects);
+			ImGui::Checkbox("Sky", &renderSky);
 			ImGui::Separator();
 
 			if (ImGui::InputInt("Img Width", (int*)&dims[0], 1))
@@ -350,7 +356,7 @@ void runEditorApplication()
 			if (ImGui::Button("Save"))
 			{
 				const std::string name(std::move(std::to_string(currSettings2D[0] * Settings::NUM_DIST_VALUES + currSettings2D[1])));
-				saveRenderedImage(dims[0], dims[1], name, renderObjects);
+				saveRenderedImage(dims[0], dims[1], name, renderObjects, renderSky);
 			}
 
 			ImGui::PopItemWidth();
@@ -365,6 +371,7 @@ void runEditorApplication()
 			app.renderer.renderPhongGrass();
 		else
 			app.renderer.renderStaticGrass();
+		app.renderer.renderSkyBox();
 
 		imGuiRender();
 
@@ -463,7 +470,7 @@ void destroyApplication()
 	DX11_RELEASE(app.shapeFactorBuffer);
 }
 
-void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool renderObjects)
+void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool renderObjects, bool renderSky)
 {
 	Ref<RenderTexture> renderTarget = createRef<RenderTexture>(width, height, RenderTexture::RENDER | RenderTexture::DEPTH);
 	app.renderer.setRenderTexture(renderTarget);
@@ -472,6 +479,8 @@ void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileN
 	app.renderer.renderPhongGrass();
 	if (renderObjects) 
 		app.renderer.renderObjects();
+	if (renderSky)
+		app.renderer.renderSkyBox();
 
 	app.renderer.setRenderTexture(app.window.getRenderTexture());
 

@@ -198,5 +198,7 @@
     <None Include="resources\shaders\MeshVS.hlsl" />
     <None Include="resources\shaders\ShaderInclude.hlsli" />
     <None Include="resources\shaders\InstancedStaticVS.hlsl" />
+    <None Include="resources\shaders\SkyBoxPS.hlsl" />
+    <None Include="resources\shaders\SkyBoxVS.hlsl" />
   </ItemGroup>
 </Project>

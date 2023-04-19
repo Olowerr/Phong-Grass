@@ -22,6 +22,16 @@ namespace Okay
 		DX11& dx11 = DX11::get();
 		ID3D11Device* pDevice = dx11.getDevice();
 
+		{
+			ContentBrowser& content = ContentBrowser::get();
+			if (skyBoxMeshId = content.getAssetID<Mesh>("cube"); skyBoxMeshId == INVALID_UINT)
+			{
+				result = content.importFile(RESOURCES_PATH "meshes/cube.fbx");
+				OKAY_ASSERT(result, "Failed loading skyBox mesh");
+				skyBoxMeshId = content.getAmount<Mesh>() - 1u;
+			}
+		}
+
 		// Buffers
 		{
 			hr = DX11::createConstantBuffer(&pRenderDataBuffer, nullptr, sizeof(GPURenderData), false);
@@ -105,6 +115,17 @@ namespace Okay
 			}
 
 			{
+				result = DX11::createShader(SHADER_PATH "SkyBoxVS.hlsl", &pSkyBoxVS, &shaderData);
+				OKAY_ASSERT(result, "Failed creating skybox vertex shader");
+				
+				hr = pDevice->CreateInputLayout(inputLayoutDesc, 1u, shaderData.c_str(), shaderData.length(), &pPosIL);
+				OKAY_ASSERT(SUCCEEDED(hr), "Failed creating skybox input layout");
+				
+				result = DX11::createShader(SHADER_PATH "SkyBoxPS.hlsl", &pSkyBoxPS);
+				OKAY_ASSERT(result, "Failed creating skybox pixel shader");
+			}
+
+			{
 				D3D_SHADER_MACRO defines[] =
 				{
 					{"MODE", ""},
@@ -132,6 +153,20 @@ namespace Okay
 			result = DX11::createShader(SHADER_PATH "DefaultPS.hlsl", &pDefaultPS);
 			OKAY_ASSERT(result, "Failed creating Default pixel shader");
 
+		}
+
+		// Depthstenil states
+		{
+			D3D11_DEPTH_STENCIL_DESC dsDesc{};
+			dsDesc.DepthEnable = true;
+			dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+			dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+			dsDesc.StencilEnable = false;
+			dsDesc.StencilReadMask = 0;
+			dsDesc.StencilWriteMask = 0;
+
+			hr = pDevice->CreateDepthStencilState(&dsDesc, &pLessEqualDSS);
+			OKAY_ASSERT(SUCCEEDED(hr), "Failed creating lessEqual Depth Stencil State");
 		}
 
 		pDevContext->VSSetConstantBuffers(0, 1, &pRenderDataBuffer);
@@ -241,9 +276,11 @@ namespace Okay
 		DX11_RELEASE(simp);
 		DX11_RELEASE(pPosNormUvIL);
 		DX11_RELEASE(pPosNormIL);
+		DX11_RELEASE(pPosIL);
 		DX11_RELEASE(pMeshVS);
 		DX11_RELEASE(pInstancedTessVS);
 		DX11_RELEASE(pInstancedStaticVS);
+		DX11_RELEASE(pSkyBoxVS);
 		DX11_RELEASE(pGrassHS[0]);
 		DX11_RELEASE(pGrassHS[1]);
 		DX11_RELEASE(pGrassHS[2]);
@@ -253,6 +290,7 @@ namespace Okay
 		DX11_RELEASE(pNoCullWireframeRS);
 		DX11_RELEASE(pDefaultPS);
 		DX11_RELEASE(pGrassPS);
+		DX11_RELEASE(pSkyBoxPS);
 		viewport = D3D11_VIEWPORT();
 	}
 
@@ -292,7 +330,9 @@ namespace Okay
 
 		ImGui::Text("Standard shaders");
 		imGuiUpdateShader(&pMeshVS, SHADER_PATH "MeshVS.hlsl", "MeshVS");
+		imGuiUpdateShader(&pSkyBoxVS, SHADER_PATH "SkyBoxVS.hlsl", "SkyBoxVS");
 		imGuiUpdateShader(&pDefaultPS, SHADER_PATH "DefaultPS.hlsl", "DefaultPS");
+		imGuiUpdateShader(&pSkyBoxPS, SHADER_PATH "SkyBoxPS.hlsl", "SkyBoxPS");
 
 		ImGui::Separator();
 		ImGui::Text("Grass shaders");
@@ -452,6 +492,24 @@ namespace Okay
 
 		const Mesh& grassMesh = ContentBrowser::get().getAsset<Mesh>(grassMeshId);
 		pDevContext->DrawIndexedInstanced(grassMesh.getNumIndices(), numGrassBlades, 0u, 0, 0u);
+	}
+
+	void Renderer::renderSkyBox()
+	{
+		Mesh& skyBoxMesh = ContentBrowser::get().getAsset<Mesh>(skyBoxMeshId);
+
+		pDevContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		pDevContext->IASetInputLayout(pPosIL);
+		pDevContext->IASetVertexBuffers(0u, 1u, skyBoxMesh.getBuffers(), Mesh::Stride, Mesh::Offset);
+		pDevContext->IASetIndexBuffer(skyBoxMesh.getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0u);
+		pDevContext->VSSetShader(pSkyBoxVS, nullptr, 0u);
+		pDevContext->HSSetShader(nullptr, nullptr, 0u);
+		pDevContext->DSSetShader(nullptr, nullptr, 0u);
+		pDevContext->RSSetState(pNoCullRS);
+		pDevContext->PSSetShader(pSkyBoxPS, nullptr, 0u);
+		pDevContext->OMSetDepthStencilState(pLessEqualDSS, 0u);
+
+		pDevContext->DrawIndexed(skyBoxMesh.getNumIndices(), 0u, 0);
 	}
 
 	void Renderer::onTargetResize(uint32_t width, uint32_t height)

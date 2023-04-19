@@ -67,6 +67,8 @@ namespace Okay
 		inline void setScene(Ref<Scene> pScene);
 		inline void setCustomCamera(Entity camera = Entity());
 
+		inline void setSkybox(Ref<SkyBox> skyBox);
+
 		inline void setGrassTessData(const GPUGrassData& grassData);
 		inline void setGrassMeshId(uint32_t meshId);
 		void initGrass(const std::vector<DirectX::XMFLOAT4X4>& grassTransforms);
@@ -75,6 +77,7 @@ namespace Okay
 		void renderObjects();
 		void renderStaticGrass();
 		void renderPhongGrass();
+		void renderSkyBox();
 
 		void imGui();
 
@@ -83,6 +86,8 @@ namespace Okay
 
 		Ref<Scene> pScene;
 		Ref<RenderTexture> pRenderTarget;
+		Ref<SkyBox> pSkyBox;
+		uint32_t skyBoxMeshId;
 		Entity customCamera;
 
 		GPURenderData renderData;
@@ -110,10 +115,12 @@ namespace Okay
 
 		ID3D11InputLayout* pPosNormUvIL = nullptr;
 		ID3D11InputLayout* pPosNormIL = nullptr;
+		ID3D11InputLayout* pPosIL = nullptr;
 
 		ID3D11VertexShader* pMeshVS = nullptr;
 		ID3D11VertexShader* pInstancedTessVS = nullptr;
 		ID3D11VertexShader* pInstancedStaticVS = nullptr;
+		ID3D11VertexShader* pSkyBoxVS = nullptr;
 
 		ID3D11HullShader* pGrassHS[3]{};
 		ID3D11DomainShader* pGrassDS = nullptr;
@@ -124,6 +131,9 @@ namespace Okay
 
 		ID3D11PixelShader* pDefaultPS = nullptr;
 		ID3D11PixelShader* pGrassPS = nullptr;
+		ID3D11PixelShader* pSkyBoxPS = nullptr;
+
+		ID3D11DepthStencilState* pLessEqualDSS = nullptr;
 	};
 
 	inline Ref<RenderTexture> Renderer::getRenderTexture()				{ return pRenderTarget; }
@@ -136,6 +146,12 @@ namespace Okay
 	}
 
 	inline void Renderer::setCustomCamera(Entity camera)				{ customCamera = camera; }
+	inline void Renderer::setSkybox(Ref<SkyBox> skyBox)					
+	{ 
+		pSkyBox = skyBox;
+		pDevContext->PSSetShaderResources(2u, 1u, pSkyBox->getTextureCubeSRV());
+	}
+
 	inline void Renderer::setGrassMeshId(uint32_t meshId)			{ grassMeshId = meshId; }
 	inline void Renderer::setGrassTessData(const GPUGrassData& grassData)
 	{
