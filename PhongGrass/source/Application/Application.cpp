@@ -144,7 +144,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 	Entity camera = app.scene->createEntity();
 	camera.addComponent<Camera>();
-	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(2.f, 2.f, -5.f);
+	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(0.f, 2.f, 0.f);
 	app.scene->setMainCamera(camera);
 
 	content.importFile(RESOURCES_PATH "meshes/gob.obj");
@@ -164,7 +164,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	app.renderer.setGrassMeshId(app.phongGrassMeshId);
 
 
-	app.grassShaderData.maxAppliedDistance = 15.f;
+	app.grassShaderData.maxAppliedDistance = 20.f;
 	app.grassShaderData.maxTessFactor = 5.f;
 	app.grassShaderData.tessFactorExponent = Settings::grassExpoTestValues[0];
 	app.grassShaderData.mode = GRASS_HULL_SHADER_MODE::LINEAR;
@@ -220,6 +220,8 @@ void runEditorApplication()
 
 	imGuiStart();
 
+	bool renderObjects = true;
+	bool renderSky = true;
 	bool phongTess = true;
 	int meshId = (int)app.phongGrassMeshId;
 	int currSettings2D[2]{0, (int)app.grassShaderData.mode };
@@ -249,7 +251,10 @@ void runEditorApplication()
 			ImGui::Text("Cam Speed:");
 			ImGui::SameLine();
 			ImGui::DragFloat("##CamSpeed", &app.cameraSpeed, 0.05f, 0.f, 10.f);
-			
+
+			ImGui::Checkbox("Objects", &renderObjects);
+			ImGui::SameLine();
+			ImGui::Checkbox("Sky", &renderSky);
 
 			ImGui::Separator();
 
@@ -331,14 +336,8 @@ void runEditorApplication()
 		{
 			ImGui::PushItemWidth(-1.f);
 
-			static bool renderObjects = false;
-			static bool renderSky = false;
 			static bool lockAspectRatio = true;
 			static uint32_t dims[2] = { 1920u, 1080u };
-
-			ImGui::Checkbox("Objects", &renderObjects);
-			ImGui::Checkbox("Sky", &renderSky);
-			ImGui::Separator();
 
 			if (ImGui::InputInt("Img Width", (int*)&dims[0], 1))
 			{
@@ -366,12 +365,17 @@ void runEditorApplication()
 		app.renderer.imGui();
 
 		app.renderer.prepareRender();
-		app.renderer.renderObjects();
+
+		if (renderObjects)
+			app.renderer.renderObjects();
+
 		if (phongTess)
 			app.renderer.renderPhongGrass();
 		else
 			app.renderer.renderStaticGrass();
-		app.renderer.renderSkyBox();
+
+		if (renderSky)
+			app.renderer.renderSkyBox();
 
 		imGuiRender();
 
