@@ -16,6 +16,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
+#include "imgui/imgui_stdlib.h"
 
 #include "Graphics/Assets/ImpExp/stb_image_write.h"
 
@@ -72,7 +73,7 @@ void imGuiNewFrame();
 void imGuiRender();
 void imGuiDestroy();
 void runGrassTests(uint32_t meshId, const std::string& resultNamePrefix, bool phongGrass);
-void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool renderObjects, bool renderSky);
+void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool phongTess, bool renderObjects, bool renderSky);
 
 void updateFloor()
 {
@@ -334,7 +335,7 @@ void runEditorApplication()
 
 		if (ImGui::Begin("Screenshot"))
 		{
-			ImGui::PushItemWidth(-1.f);
+			ImGui::PushItemWidth(-100.f);
 
 			static bool lockAspectRatio = true;
 			static uint32_t dims[2] = { 1920u, 1080u };
@@ -351,17 +352,52 @@ void runEditorApplication()
 			}
 			ImGui::Checkbox("16:9", &lockAspectRatio);
 
+			static std::string nameBuffer;
+			ImGui::InputText("namePrefix", &nameBuffer);
+
 			ImGui::Separator();
 			if (ImGui::Button("Save"))
 			{
 				const int set0 = currSettings2D[0], set1 = currSettings2D[1];
 
-				std::string name = ContentBrowser::get().getAsset<Mesh>(meshId).getName();
+				std::string name = ContentBrowser::get().getAsset<Mesh>(meshId).getName() + "_" + nameBuffer;
 				name += (set0 == 0 ? "_Sparse" : (set0 == 1 ? "_Moderate" : (set0 == 2 ? "_Dense" : "_Unknown")));
 				name += (set1 == 0 ? "_Linear" : (set1 == 1 ? "_Exponential_Hold" : (set1 == 2 ? "_Exponential_Drop" : "_Unknown")));
 
-				saveRenderedImage(dims[0], dims[1], name, renderObjects, renderSky);
+				saveRenderedImage(dims[0], dims[1], name, phongTess, renderObjects, renderSky);
 			}
+
+			ImGui::Separator();
+
+			static bool disableGogoMode = true;
+			ImGui::Checkbox("no gogo mode?", &disableGogoMode);
+			
+			ImGui::BeginDisabled(disableGogoMode);
+			static float xPos = 0.f, zPos = 5.f, rotation = 45.f, scale = 1.f;
+			static float camYPos = 1.f;
+			
+			ImGui::DragFloat("xDist", &xPos, 0.05f);
+			ImGui::DragFloat("zDist", &zPos, 0.05f);
+			ImGui::DragFloat("cam yPos", &camYPos, 0.05f);
+			ImGui::DragFloat("Rotation", &rotation, 1.f);
+
+			if (!disableGogoMode)
+			{
+				Transform& camTra = app.scene->getMainCamera().getComponent<Transform>();
+				camTra.rotation = DX::XMFLOAT3(0.f, 0.f, 0.f);
+				camTra.position = DX::XMFLOAT3(0.f, camYPos, 0.f);
+				
+				const float yRotRad = DX::XMConvertToRadians(rotation);
+				
+				std::vector<DX::XMFLOAT4X4> matrices(1);
+
+				DX::XMStoreFloat4x4(&matrices[0], DX::XMMatrixTranspose(
+					DX::XMMatrixRotationY(yRotRad) * DX::XMMatrixTranslation(xPos, 0.f, zPos)));
+
+				app.renderer.initGrass(matrices);
+
+			}
+			ImGui::EndDisabled();
 
 			ImGui::PopItemWidth();
 		}
@@ -475,13 +511,17 @@ void destroyApplication()
 	DX11_RELEASE(app.shapeFactorBuffer);
 }
 
-void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool renderObjects, bool renderSky)
+void saveRenderedImage(uint32_t width, uint32_t height, const std::string& fileName, bool phongTess, bool renderObjects, bool renderSky)
 {
 	Ref<RenderTexture> renderTarget = createRef<RenderTexture>(width, height, RenderTexture::RENDER | RenderTexture::DEPTH);
 	app.renderer.setRenderTexture(renderTarget);
 
 	app.renderer.prepareRender();
-	app.renderer.renderPhongGrass();
+	if (phongTess)
+		app.renderer.renderPhongGrass();
+	else
+		app.renderer.renderStaticGrass();
+
 	if (renderObjects) 
 		app.renderer.renderObjects();
 	if (renderSky)

@@ -84,6 +84,9 @@
     <ClCompile Include="deps\include\imgui\imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="deps\include\imgui\imgui_stdlib.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Input\Input.h">
@@ -187,6 +190,9 @@
     </ClInclude>
     <ClInclude Include="source\Graphics\Assets\ImpExp\stb_image_write.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\include\imgui\imgui_stdlib.h">
+      <Filter>ImGui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
