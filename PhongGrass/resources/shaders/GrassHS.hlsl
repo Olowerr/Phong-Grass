@@ -16,21 +16,22 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<GrassVertex, NUM_CONTROL
     const float distance = length(camToGrass);
 
 #if MODE == 0
-    const float tessellationFactor = (1.f - distance / maxGrassAppliedDistance) * maxGrassTessFactor;
+    const float tessellationFactor = (1.f - distance / maxGrassAppliedDistance) * maxGrassTessFactor + 1.f;
     const float clampedMaxFactor = max(tessellationFactor, 1.f);
 #elif MODE == 1
-    const float tessellationFactor = maxGrassTessFactor + pow(distance / maxGrassAppliedDistance, tessGrassFactorExponent) * -maxGrassTessFactor;
+    const float tessellationFactor = maxGrassTessFactor + pow(distance / maxGrassAppliedDistance, tessGrassFactorExponent) * -maxGrassTessFactor + 1.f;
     const float clampedMaxFactor = max(tessellationFactor, 1.f);
 #elif MODE == 2
-    const float tessellationFactor = pow(1.f - distance / maxGrassAppliedDistance, tessGrassFactorExponent) * maxGrassTessFactor;
+    const float tessellationFactor = pow(1.f - distance / maxGrassAppliedDistance, tessGrassFactorExponent) * maxGrassTessFactor * (distance < maxGrassAppliedDistance) + 1.f;
     const float clampedMaxFactor = max(tessellationFactor, 1.f);
 #else
     const float clampedMaxFactor = 0.f;
 #endif
-        
+    
+    
     output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] =
         output.InsideTessFactor = clampedMaxFactor;
-
+    
 	return output;
 }
 

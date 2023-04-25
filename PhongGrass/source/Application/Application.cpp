@@ -149,7 +149,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 	content.importFile(RESOURCES_PATH "meshes/gob.obj");
 	Entity gob = app.scene->createEntity();
-	gob.addComponent<MeshComponent>(content.getAmount<Mesh>() - 1u, 0u);
+	//gob.addComponent<MeshComponent>(content.getAmount<Mesh>() - 1u, 0u);
 
 	const uint32_t amountPreImport = content.getAmount<Mesh>();
 
@@ -165,7 +165,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 
 	app.grassShaderData.maxAppliedDistance = 20.f;
-	app.grassShaderData.maxTessFactor = 5.f;
+	app.grassShaderData.maxTessFactor = 4.f;
 	app.grassShaderData.tessFactorExponent = Settings::grassExpoTestValues[0];
 	app.grassShaderData.mode = GRASS_HULL_SHADER_MODE::LINEAR;
 
@@ -354,7 +354,12 @@ void runEditorApplication()
 			ImGui::Separator();
 			if (ImGui::Button("Save"))
 			{
-				const std::string name(std::move(std::to_string(currSettings2D[0] * Settings::NUM_DIST_VALUES + currSettings2D[1])));
+				const int set0 = currSettings2D[0], set1 = currSettings2D[1];
+
+				std::string name = ContentBrowser::get().getAsset<Mesh>(meshId).getName();
+				name += (set0 == 0 ? "_Sparse" : (set0 == 1 ? "_Moderate" : (set0 == 2 ? "_Dense" : "_Unknown")));
+				name += (set1 == 0 ? "_Linear" : (set1 == 1 ? "_Exponential_Hold" : (set1 == 2 ? "_Exponential_Drop" : "_Unknown")));
+
 				saveRenderedImage(dims[0], dims[1], name, renderObjects, renderSky);
 			}
 
@@ -447,10 +452,6 @@ void runGrassTests(uint32_t meshId, const std::string& resultNamePrefix, bool ph
 				writeSettingsToFile(writer, currentTest, phongGrass);
 
 				Time::start();
-			}
-			else
-			{
-				writer << dt * 1000.f << "\n";
 			}
 		}
 

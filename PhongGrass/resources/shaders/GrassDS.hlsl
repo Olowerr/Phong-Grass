@@ -35,7 +35,7 @@ TransformedGrssVertex main(HS_CONSTANT_DATA_OUTPUT input, float3 domain : SV_Dom
         domain.y * orthogonalProjection(output.pos, patch[1].pos, patch[1].normal) +
         domain.z * orthogonalProjection(output.pos, patch[2].pos, patch[2].normal)
     };
-    output.worldPos = (1.f - shapeFactor) * output.pos + shapeFactor * res;
+    output.pos = (1.f - shapeFactor) * output.pos + shapeFactor * res;
 #else
     float3x3 res =
     {
