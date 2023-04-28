@@ -209,8 +209,8 @@ namespace Okay
 
 		pGrassTransformBuffer->Release();
 
-		pDevContext->VSSetShaderResources(1, 1, &pGrassTransformSRV);
-		pDevContext->HSSetShaderResources(1, 1, &pGrassTransformSRV);
+		pDevContext->VSSetShaderResources(2, 1, &pGrassTransformSRV);
+		pDevContext->HSSetShaderResources(2, 1, &pGrassTransformSRV);
 	}
 
 	Renderer::Renderer()
@@ -434,6 +434,8 @@ namespace Okay
 		auto objGroup = reg.group<Transform, MeshComponent>();
 		XMMATRIX worldMatrix{};
 
+		ID3D11ShaderResourceView* textures[2]{};
+
 		for (entt::entity entity : objGroup)
 		{
 			auto [transform, meshComp] = objGroup.get<Transform, MeshComponent>(entity);
@@ -443,19 +445,22 @@ namespace Okay
 			const Material::GPUData& matGPUData = material.getGPUData();
 			const Texture& diffuseTexture = content.getAsset<Texture>(material.getBaseColour());
 
+			textures[0] = *content.getAsset<Texture>(material.getBaseColour()).getSRV();
+			textures[1] = *content.getAsset<Texture>(material.getSpecular()).getSRV();
 
 			transform.calculateMatrix();
 			worldMatrix = transform.matrix;
 			XMStoreFloat4x4(&objectData.worldMatrix, XMMatrixTranspose(worldMatrix));
 			objectData.uvOffset = matGPUData.uvOffset;
 			objectData.uvTiling = matGPUData.uvTiling;
+			objectData.shinyness = matGPUData.shinynessExp;
 			DX11::updateBuffer(pObjectDataBuffer, &objectData, sizeof(GPUObjectData));
 
 
 			pDevContext->IASetVertexBuffers(0u, Mesh::NumBuffers, mesh.getBuffers(), Mesh::Stride, Mesh::Offset);
 			pDevContext->IASetIndexBuffer(mesh.getIndexBuffer(), DXGI_FORMAT_R32_UINT, 0u);
 
-			pDevContext->PSSetShaderResources(0u, 1u, diffuseTexture.getSRV());
+			pDevContext->PSSetShaderResources(0u, 2u, textures);
 
 			pDevContext->DrawIndexed(mesh.getNumIndices(), 0u, 0);
 		}

@@ -30,6 +30,8 @@ namespace Okay
 		DirectX::XMFLOAT4X4 worldMatrix;
 		DirectX::XMFLOAT2 uvOffset;
 		DirectX::XMFLOAT2 uvTiling;
+		float shinyness;
+		float pad[3];
 	};
 
 	enum GRASS_HULL_SHADER_MODE : uint32_t
@@ -149,7 +151,7 @@ namespace Okay
 	inline void Renderer::setSkybox(Ref<SkyBox> skyBox)					
 	{ 
 		pSkyBox = skyBox;
-		pDevContext->PSSetShaderResources(2u, 1u, pSkyBox->getTextureCubeSRV());
+		pDevContext->PSSetShaderResources(3u, 1u, pSkyBox->getTextureCubeSRV());
 	}
 
 	inline void Renderer::setGrassMeshId(uint32_t meshId)			{ grassMeshId = meshId; }

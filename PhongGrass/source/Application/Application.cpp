@@ -137,6 +137,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	content.importFile(RESOURCES_PATH "meshes/floor.fbx");
 	Material& floorMat = content.addAsset<Material>();
 	floorMat.setBaseColour(content.getAssetID<Texture>("groundTex"));
+	floorMat.setSpecular(content.getAssetID<Texture>("groundTex"));
 	floorMat.setName("floorMat");
 
 	app.floor = app.scene->createEntity();
@@ -149,8 +150,13 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	app.scene->setMainCamera(camera);
 
 	content.importFile(RESOURCES_PATH "meshes/gob.obj");
+	content.importFile(RESOURCES_PATH "textures/GoblinAlbedo.png");
+	content.importFile(RESOURCES_PATH "textures/GoblinRoughness.png");
+	const uint32_t gobMatId = content.getAmount<Material>() - 1u;
+	content.getAsset<Material>(gobMatId).setBaseColour(content.getAmount<Texture>() - 2u);
+	content.getAsset<Material>(gobMatId).setSpecular(content.getAmount<Texture>() - 1u);
 	Entity gob = app.scene->createEntity();
-	//gob.addComponent<MeshComponent>(content.getAmount<Mesh>() - 1u, 0u);
+	gob.addComponent<MeshComponent>(content.getAmount<Mesh>() - 1u, gobMatId);
 
 	const uint32_t amountPreImport = content.getAmount<Mesh>();
 

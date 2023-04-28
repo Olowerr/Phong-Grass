@@ -47,6 +47,8 @@ cbuffer objectData : register(b1)
     float4x4 worldMatrix;
     float2 uvOffset;
     float2 uvTiling;
+    float shinyness;
+    float3 pad3;
 };
 
 cbuffer grassData : register(b2)
@@ -64,8 +66,9 @@ float2 calculateFinalUV(float2 inputUV)
 
 // Resources
 Texture2D diffuseTexture : register(t0);
-StructuredBuffer<float4x4> instanceTransforms : register(t1);
-TextureCube skyBoxTexture : register(t2);
+Texture2D specularTexture : register(t1);
+StructuredBuffer<float4x4> instanceTransforms : register(t2);
+TextureCube skyBoxTexture : register(t3);
 
 // Samplers
 SamplerState simp : register(s0);
