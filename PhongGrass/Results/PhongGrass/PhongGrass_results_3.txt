@@ -1,0 +1,2 @@
+SettingID: 3 | Number of blades : 63243 | Dist: 0.250000 | Mode: Linear | Exponent: 1.000000
+Avg: 0.276543 | NumFrames: 108483 | Test Duration: 30.000000

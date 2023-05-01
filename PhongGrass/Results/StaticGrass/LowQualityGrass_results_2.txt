@@ -1,0 +1,2 @@
+SettingID: 6 | Number of blades : 394091 | Dist: 0.100000
+Avg: 1.047047 | NumFrames: 28652 | Test Duration: 30.000000

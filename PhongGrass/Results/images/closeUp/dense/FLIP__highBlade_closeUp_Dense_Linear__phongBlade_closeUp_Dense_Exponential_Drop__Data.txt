@@ -1,0 +1,11 @@
+FLIP between reference image: 
+<C:\Users\Oliver\source\repos\Phong-Grass\PhongGrass\Results\images\closeUp\dense\highBlade_closeUp_Dense_Linear.png>
+and test image
+<C:\Users\Oliver\source\repos\Phong-Grass\PhongGrass\Results\images\closeUp\dense\phongBlade_closeUp_Dense_Exponential_Drop.png>
+
+Mean: 0.145333
+Weighted median: 0.264397
+1st weighted quartile: 0.145363
+3rd weighted quartile: 0.435116
+Min: 0
+Max: 0.985966

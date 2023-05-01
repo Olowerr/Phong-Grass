@@ -1,0 +1,11 @@
+FLIP between reference image: 
+<C:\Users\Oliver\source\repos\Phong-Grass\PhongGrass\Results\images\overview\moderate\highBlade_overview_Moderate_Linear.png>
+and test image
+<C:\Users\Oliver\source\repos\Phong-Grass\PhongGrass\Results\images\overview\moderate\phongBlade_overview_Moderate_Exponential_Drop.png>
+
+Mean: 0.303112
+Weighted median: 0.554246
+1st weighted quartile: 0.360391
+3rd weighted quartile: 0.769856
+Min: 0
+Max: 0.991624

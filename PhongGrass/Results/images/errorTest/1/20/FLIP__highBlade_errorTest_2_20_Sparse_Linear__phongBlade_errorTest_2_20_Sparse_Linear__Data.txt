@@ -1,0 +1,11 @@
+FLIP between reference image: 
+<C:\Users\Oliver\source\repos\Phong-Grass\PhongGrass\Results\images\errorTest\1\20\highBlade_errorTest_2_20_Sparse_Linear.png>
+and test image
+<C:\Users\Oliver\source\repos\Phong-Grass\PhongGrass\Results\images\errorTest\1\20\phongBlade_errorTest_2_20_Sparse_Linear.png>
+
+Mean: 0.214922
+Weighted median: 0.555712
+1st weighted quartile: 0.345757
+3rd weighted quartile: 0.756833
+Min: 0
+Max: 0.989592

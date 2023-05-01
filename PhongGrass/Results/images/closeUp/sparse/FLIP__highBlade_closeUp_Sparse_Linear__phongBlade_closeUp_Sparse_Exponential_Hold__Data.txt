@@ -1,0 +1,11 @@
+FLIP between reference image: 
+<C:\Users\Oliver\source\repos\Phong-Grass\PhongGrass\Results\images\closeUp\sparse\highBlade_closeUp_Sparse_Linear.png>
+and test image
+<C:\Users\Oliver\source\repos\Phong-Grass\PhongGrass\Results\images\closeUp\sparse\phongBlade_closeUp_Sparse_Exponential_Hold.png>
+
+Mean: 0.11006
+Weighted median: 0.415185
+1st weighted quartile: 0.205251
+3rd weighted quartile: 0.665706
+Min: 0
+Max: 0.989974

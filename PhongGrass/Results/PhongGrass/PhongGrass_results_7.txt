@@ -1,0 +1,2 @@
+SettingID: 7 | Number of blades : 394091 | Dist: 0.100000 | Mode: Exponential_Hold | Exponent: 4.000000
+Avg: 1.549585 | NumFrames: 19361 | Test Duration: 30.000000

@@ -1,0 +1,2 @@
+SettingID: 5 | Number of blades : 63243 | Dist: 0.250000 | Mode: Exponential_Drop | Exponent: 4.000000
+Avg: 0.265665 | NumFrames: 112925 | Test Duration: 30.000000
