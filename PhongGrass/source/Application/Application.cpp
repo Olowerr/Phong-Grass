@@ -19,6 +19,7 @@
 #include "imgui/imgui_stdlib.h"
 
 #include "Graphics/Assets/ImpExp/stb_image_write.h"
+#include <iomanip>
 
 using namespace Okay;
 
@@ -146,7 +147,7 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 
 	Entity camera = app.scene->createEntity();
 	camera.addComponent<Camera>();
-	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(0.f, 2.f, 0.f);
+	camera.getComponent<Transform>().position = DirectX::XMFLOAT3(0.f, 7.f, 0.f);
 	app.scene->setMainCamera(camera);
 
 	content.importFile(RESOURCES_PATH "meshes/gob.obj");
@@ -435,8 +436,8 @@ void runEditorApplication()
 
 void runGrassTests(uint32_t meshId, const std::string& resultNamePrefix, bool phongGrass)
 {
-	static const float TEST_DURATION = 1.f; // Seconds
-	static const float DELAY_DURATION = 1.f; // Seconds
+	static const float TEST_DURATION = 30.f; // Seconds
+	static const float DELAY_DURATION = 10.f; // Seconds
 	static bool fullscreen = true;
 
 	float timer = 0.f;
@@ -445,7 +446,7 @@ void runGrassTests(uint32_t meshId, const std::string& resultNamePrefix, bool ph
 	uint32_t currentTest = 0u;
 	uint32_t numFrames = 0u;
 
-	const std::string fileLocation = (phongGrass ? "Results/PhongGrass/" : "Results/StaticGrass/") + resultNamePrefix;
+	const std::string fileLocation = (phongGrass ? "../PhongGrass/Results/PhongGrass/" : "../PhongGrass/Results/StaticGrass/") + resultNamePrefix;
 	std::ofstream writer;
 	writer.open(fileLocation + "_results_0.txt", std::ofstream::trunc);
 
@@ -477,7 +478,7 @@ void runGrassTests(uint32_t meshId, const std::string& resultNamePrefix, bool ph
 			numFrames++;
 			if (timer > TEST_DURATION)
 			{
-				writer << "Avg: " << (timer * 1000.f) / (float)numFrames << " | NumFrames: " << numFrames << " | Test Duration: " << TEST_DURATION << "\n";
+				writer << "Avg: " << std::fixed << std::setprecision(6) << ((timer * 1000.f) / (float)numFrames) << " | NumFrames: " << numFrames << " | Test Duration: " << TEST_DURATION << "\n";
 				timer = 0.f;
 				numFrames = 0u;
 				delay = true;
