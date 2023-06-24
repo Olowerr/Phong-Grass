@@ -29,6 +29,7 @@ struct ApplicationData
 	Renderer renderer;
 	Ref<Scene> scene;
 	float cameraSpeed = 5.f;
+	float cameraRotSpeed = 3.f;
 	Entity floor;
 	uint32_t phongGrassMeshId;
 	uint32_t lowGrassMeshId;
@@ -156,8 +157,8 @@ void startApplication(const wchar_t* appName, uint32_t width, uint32_t height)
 	const uint32_t gobMatId = content.getAmount<Material>() - 1u;
 	content.getAsset<Material>(gobMatId).setBaseColour(content.getAmount<Texture>() - 2u);
 	content.getAsset<Material>(gobMatId).setSpecular(content.getAmount<Texture>() - 1u);
-	Entity gob = app.scene->createEntity();
-	gob.addComponent<MeshComponent>(content.getAmount<Mesh>() - 1u, gobMatId);
+	//Entity gob = app.scene->createEntity();
+	//gob.addComponent<MeshComponent>(content.getAmount<Mesh>() - 1u, gobMatId);
 
 	const uint32_t amountPreImport = content.getAmount<Mesh>();
 
@@ -259,6 +260,7 @@ void runEditorApplication()
 			ImGui::Text("Cam Speed:");
 			ImGui::SameLine();
 			ImGui::DragFloat("##CamSpeed", &app.cameraSpeed, 0.05f, 0.f, 10.f);
+			ImGui::DragFloat("##CamRotSpeed", &app.cameraRotSpeed, 0.05f, 0.f, 10.f);
 
 			ImGui::Checkbox("Objects", &renderObjects);
 			ImGui::SameLine();
@@ -585,8 +587,8 @@ void updateCamera()
 	XMStoreFloat3(&tra.position, pos + (right * xInput + fwd * zInput) * frameSpeed);
 	tra.position.y += yInput * frameSpeed;
 
-	tra.rotation.x += xRot * 3.f * Time::getDT();
-	tra.rotation.y += yRot * 3.f * Time::getDT();
+	tra.rotation.x += xRot * app.cameraRotSpeed * Time::getDT();
+	tra.rotation.y += yRot * app.cameraRotSpeed * Time::getDT();
 }
 
 void imGuiStart()
@@ -624,3 +626,4 @@ void imGuiDestroy()
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 }
+

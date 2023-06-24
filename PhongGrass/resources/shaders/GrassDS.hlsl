@@ -2,8 +2,8 @@
 
 struct HS_CONSTANT_DATA_OUTPUT
 {
-	float EdgeTessFactor[3]			: SV_TessFactor;
-	float InsideTessFactor			: SV_InsideTessFactor;
+    float EdgeTessFactor[3] : SV_TessFactor;
+    float InsideTessFactor : SV_InsideTessFactor;
 };
 
 #define NUM_CONTROL_POINTS 3
@@ -48,5 +48,5 @@ TransformedGrssVertex main(HS_CONSTANT_DATA_OUTPUT input, float3 domain : SV_Dom
     
     output.svPos = mul(float4(output.pos, 1.f), viewProjMatrix);
     
-	return output;
+    return output;
 }

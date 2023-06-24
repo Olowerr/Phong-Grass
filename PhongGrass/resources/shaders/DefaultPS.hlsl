@@ -9,6 +9,7 @@ static const float4 gamma4 = float4(gamma, gamma, gamma, gamma);
 float4 main(TransformedVertex input) : SV_TARGET
 {
     const float4 baseColour = diffuseTexture.Sample(simp, input.uv);
+    return baseColour;
     const float4 specularColour = specularTexture.Sample(simp, input.uv);
     const float3 posToCam = normalize(camPos - input.worldPos);
     
